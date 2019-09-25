@@ -39,7 +39,8 @@
 #if defined(__cplusplus)
 extern "C" {
 #endif
-
+void ecall_nvram_worker();
+int printf(const char* fmt, ...);
 
 #if defined(__cplusplus)
 }

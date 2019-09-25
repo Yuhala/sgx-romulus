@@ -1,7 +1,9 @@
 ------------------------
-Purpose of Switchlesss
+Purpose of sgx-romulus
 ------------------------
-The project demonstrates how to use Fast OCalls provided by sgx_switchless.
+The project demonstrates how to use cache line flush commands e.g: clfush, clwb, clfushopt inside sgx enclaves. A file on persistent memory (`/dev/shm/pool` by default) 
+is first memory mapped into the untrusted runtime's virtual memory. The flush commands are then executed on some mapped addresses within the enclave. The long term goal 
+of this project is to port the romulus library into sgx.
 
 ------------------------------------
 How to Build/Execute the Sample Code
@@ -17,10 +19,4 @@ How to Build/Execute the Sample Code
 3. Execute the binary directly:
     $ ./app
 
--------------------------------------------------
-Launch token initialization
--------------------------------------------------
-If using libsgx-enclave-common or sgxpsw under version 2.4, an initialized variable launch_token needs to be passed as the 3rd parameter of API sgx_create_enclave. For example,
 
-sgx_launch_token_t launch_token = {0};
-sgx_create_enclave(ENCLAVE_FILENAME, SGX_DEBUG_FLAG, launch_token, NULL, &global_eid, NULL);

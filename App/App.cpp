@@ -36,10 +36,11 @@
 
 #include <unistd.h>
 #include <pwd.h>
-#define MAX_PATH FILENAME_MAX
 
 #include <sgx_urts.h>
-#include <sgx_uswitchless.h>
+#include "sgx_trts.h"
+#include "sgx_thread.h" //for thread manipulation
+#include <sgx_uswitchless.h> //for switchless calls
 #include "App.h"
 #include "Enclave_u.h"
 
@@ -229,8 +230,8 @@ int SGX_CDECL main(int argc, char *argv[])
 
     printf("Base addr is :%p\n", got_addr); //print base address of mmapped portion.
 
-    printf("saved int is %d: \n",*data);// uncomment this portion to test for persistence.
-    return 0;
+    //printf("saved int is %d: \n",*data);// uncomment this portion to test for persistence.
+    //return 0;
     ecall_test_pwb(global_eid, data);
     printf("Value of data is: %d\n", *data);
 

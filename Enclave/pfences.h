@@ -84,6 +84,14 @@
     "You must define what PWB is. Choose PWB_IS_CLFLUSHOPT if you don't know what your CPU is capable of"
 
 #endif
+
+// Flush each cache line in a range
+// TODO: fix cache alignment
+inline static void flushFromTo(void* from, void* to) noexcept {
+    const int cache_line_size = 64;
+    uint8_t* ptr = (uint8_t*)from;
+    for (; ptr < (uint8_t*)to; ptr += cache_line_size) PWB(ptr);
+}
 //-----------------------------
 
 #endif /*NVRAM_H*/

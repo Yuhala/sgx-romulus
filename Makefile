@@ -32,9 +32,9 @@
 ######## SGX SDK Settings ########
 
 SGX_SDK ?= /opt/intel/sgxsdk
-SGX_MODE ?= SIM
+SGX_MODE ?= HW
 SGX_ARCH ?= x64
-#SGX_DEBUG ?= 1
+SGX_DEBUG ?= 1
 
 ifeq ($(shell getconf LONG_BIT), 32)
 	SGX_ARCH := x86
@@ -81,7 +81,7 @@ else
 	Urts_Library_Name := sgx_urts
 endif
 
-App_Cpp_Files := App/App.cpp
+App_Cpp_Files := $(wildcard App/*.cpp) $(wildcard App/romulus/common/*.cpp) $(wildcard App/romulus/romuluslog/*.cpp) #$(wildcard App/*.cpp)
 App_Include_Paths := -IApp -I$(SGX_SDK)/include
 
 App_C_Flags := -fPIC -Wno-attributes $(App_Include_Paths)
