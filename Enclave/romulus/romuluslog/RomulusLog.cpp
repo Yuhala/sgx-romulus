@@ -9,9 +9,9 @@ uint64_t g_main_size = 0;
 uint8_t* g_main_addr = 0;
 
 // Counter of nested write transactions
-thread_local int64_t tl_nested_write_trans = 0;
+thread_local int64_t tl_nested_write_trans = 0; //thread local
 // Counter of nested read-only transactions
-thread_local int64_t tl_nested_read_trans = 0;
+thread_local int64_t tl_nested_read_trans = 0; //thread local
 bool histoOn = false;
 bool histoflag = false;
 RomulusLog gRomLog {};

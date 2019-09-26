@@ -39,7 +39,7 @@
 
 
 // Pause to prevent excess processor bus usage
-// Removed due to intel sgx compatibility issues: TODO: check performance implications of this
+// Removed due to intel sgx compatibility issues
 /*
 #if defined( __sparc )
 #define Pause() __asm__ __volatile__ ( "rd %ccr,%g0" )
@@ -49,6 +49,7 @@
 #define Pause() std::this_thread::yield();
 #endif
 */
+
 
 
 

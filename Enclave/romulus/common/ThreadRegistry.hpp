@@ -2,8 +2,9 @@
 #define _THREAD_REGISTRY_H_
 
 #include <atomic>
-#include <thread>
-#include <iostream>
+//#include <thread>
+//#include <iostream>
+#include "../../Enclave.h" //for enclave's printf implem
 #include <cassert>
 
 // Increase this if 128 threads is not enough
@@ -71,8 +72,8 @@ public:
             tl_tcico.tid = tid;
             return tid;
         }
-        std::cout << "ERROR: Too many threads, registry can only hold " << REGISTRY_MAX_THREADS << " threads\n";
-        assert(false);
+        printf("ERROR: Too many threads, registry can only hold %d \n",REGISTRY_MAX_THREADS);        
+        assert(false); 
     }
 
     /*

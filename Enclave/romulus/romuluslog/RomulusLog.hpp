@@ -17,7 +17,7 @@
 
 #include "../common/pfences.h"
 #include "../common/ThreadRegistry.hpp"
-//#include "../rwlocks/CRWWPSpinLock.hpp"
+#include "../rwlocks/CRWWPSpinLock.hpp"
 
 namespace romuluslog {
 
@@ -29,9 +29,9 @@ extern uint64_t g_main_size;
 extern uint8_t* g_main_addr;
 
 // Counter of nested write transactions
-extern thread_local int64_t tl_nested_write_trans;
+extern thread_local int64_t tl_nested_write_trans; //thread local
 // Counter of nested read-only transactions
-extern thread_local int64_t tl_nested_read_trans;
+extern thread_local int64_t tl_nested_read_trans; //thread local
 extern bool histoOn;
 extern bool histoflag;
 
