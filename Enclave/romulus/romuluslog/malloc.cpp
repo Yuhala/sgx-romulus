@@ -440,7 +440,7 @@ MALLINFO_FIELD_TYPE        default: size_t
 
 NO_MALLOC_STATS            default: 0
   If defined, don't compile "malloc_stats". This avoids calls to
-  fprintf and bringing in stdio dependencies you might not want.
+  fsgx_printf and bringing in stdio dependencies you might not want.
 
 REALLOC_ZERO_BYTES_FREES    default: not defined
   This should be set if a call to realloc with zero bytes should
@@ -530,7 +530,8 @@ MAX_RELEASE_CHECK_RATE   default: 4095 unless not HAVE_MMAP
   disable, set to MAX_SIZE_T. This may lead to a very slight speed
   improvement at the expense of carrying around more memory.
 */
-#include "RomulusLog.hpp"
+#include "RomulusLogSGX.hpp" //-->includes Types.h
+
 //modification by Andreia
 #define ONLY_MSPACES 1
 
@@ -554,8 +555,8 @@ MAX_RELEASE_CHECK_RATE   default: 4095 unless not HAVE_MMAP
 #endif  /* WIN32 */
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <tchar.h>
+//#include <windows.h>
+//#include <tchar.h>
 #define HAVE_MMAP 1
 #define HAVE_MORECORE 0
 #define LACKS_UNISTD_H
@@ -591,7 +592,8 @@ MAX_RELEASE_CHECK_RATE   default: 4095 unless not HAVE_MMAP
 #endif  /* DARWIN */
 
 #ifndef LACKS_SYS_TYPES_H
-#include <sys/types.h>  /* For size_t */
+//#include <sys/types.h>  /* For size_t */-->Types.h includes stdlib.h
+
 #endif  /* LACKS_SYS_TYPES_H */
 
 /* The maximum possible size_t value has all bits set */
@@ -664,7 +666,7 @@ MAX_RELEASE_CHECK_RATE   default: 4095 unless not HAVE_MMAP
 #endif  /* linux */
 #endif  /* HAVE_MREMAP */
 #ifndef MALLOC_FAILURE_ACTION
-#define MALLOC_FAILURE_ACTION  errno = ENOMEM;
+#define MALLOC_FAILURE_ACTION  SGX_MALLOC_FAILURE_ACTION//errno = ENOMEM; //TODO
 #endif  /* MALLOC_FAILURE_ACTION */
 #ifndef HAVE_MORECORE
 #if ONLY_MSPACES
@@ -767,7 +769,7 @@ MAX_RELEASE_CHECK_RATE   default: 4095 unless not HAVE_MMAP
 /* #define HAVE_USR_INCLUDE_MALLOC_H */
 
 #ifdef HAVE_USR_INCLUDE_MALLOC_H
-#include "/usr/include/malloc.h"
+//#include "/usr/include/malloc.h" 
 #else /* HAVE_USR_INCLUDE_MALLOC_H */
 #ifndef STRUCT_MALLINFO_DECLARED
 /* HP-UX (and others?) redefines mallinfo unless _STRUCT_MALLINFO is defined */
@@ -1446,17 +1448,18 @@ DLMALLOC_EXPORT int mspace_mallopt(int, int);
 #pragma warning( disable : 4146 ) /* no "unsigned" warnings */
 #endif /* _MSC_VER */
 #if !NO_MALLOC_STATS
-#include <stdio.h>       /* for printing in malloc_stats */
+//#include <stdio.h>       /* for printing in malloc_stats */
 #endif /* NO_MALLOC_STATS */
 #ifndef LACKS_ERRNO_H
-#include <errno.h>       /* for MALLOC_FAILURE_ACTION */
+//#include <errno.h>       /* for MALLOC_FAILURE_ACTION */
 #endif /* LACKS_ERRNO_H */
 #ifdef DEBUG
 #if ABORT_ON_ASSERT_FAILURE
 #undef assert
 #define assert(x) if(!(x)) ABORT
 #else /* ABORT_ON_ASSERT_FAILURE */
-#include <assert.h>
+//#include <assert.h>
+#include <cassert>
 #endif /* ABORT_ON_ASSERT_FAILURE */
 #else  /* DEBUG */
 #ifndef assert
@@ -1465,17 +1468,17 @@ DLMALLOC_EXPORT int mspace_mallopt(int, int);
 #define DEBUG 0
 #endif /* DEBUG */
 #if !defined(WIN32) && !defined(LACKS_TIME_H)
-#include <time.h>        /* for magic initialization */
+//#include <time.h>        /* for magic initialization */
 #endif /* WIN32 */
 #ifndef LACKS_STDLIB_H
-#include <stdlib.h>      /* for abort() */
+//#include <stdlib.h>      /* for abort() */
 #endif /* LACKS_STDLIB_H */
 #ifndef LACKS_STRING_H
-#include <string.h>      /* for memset etc */
+//#include <string.h>      /* for memset etc */
 #endif  /* LACKS_STRING_H */
 #if USE_BUILTIN_FFS
 #ifndef LACKS_STRINGS_H
-#include <strings.h>     /* for ffs */
+//#include <strings.h>     /* for ffs */
 #endif /* LACKS_STRINGS_H */
 #endif /* USE_BUILTIN_FFS */
 #if HAVE_MMAP
@@ -1483,21 +1486,21 @@ DLMALLOC_EXPORT int mspace_mallopt(int, int);
 /* On some versions of linux, mremap decl in mman.h needs __USE_GNU set */
 #if (defined(linux) && !defined(__USE_GNU))
 #define __USE_GNU 1
-#include <sys/mman.h>    /* for mmap */
+//#include <sys/mman.h>    /* for mmap */
 #undef __USE_GNU
 #else
-#include <sys/mman.h>    /* for mmap */
+//#include <sys/mman.h>    /* for mmap */
 #endif /* linux */
 #endif /* LACKS_SYS_MMAN_H */
 #ifndef LACKS_FCNTL_H
-#include <fcntl.h>
+//#include <fcntl.h>
 #endif /* LACKS_FCNTL_H */
 #endif /* HAVE_MMAP */
 #ifndef LACKS_UNISTD_H
-#include <unistd.h>     /* for sbrk, sysconf */
+//#include <unistd.h>     /* for sbrk, sysconf */
 #else /* LACKS_UNISTD_H */
 #if !defined(__FreeBSD__) && !defined(__OpenBSD__) && !defined(__NetBSD__)
-extern void*     sbrk(ptrdiff_t);
+//extern void*     sbrk(ptrdiff_t);
 #endif /* FreeBSD etc */
 #endif /* LACKS_UNISTD_H */
 
@@ -1505,12 +1508,12 @@ extern void*     sbrk(ptrdiff_t);
 #if USE_LOCKS
 #ifndef WIN32
 #if defined (__SVR4) && defined (__sun)  /* solaris */
-#include <thread.h>
+#include THREAD_LIB //<thread.h>
 #elif !defined(LACKS_SCHED_H)
-#include <sched.h>
+#include SCHED_LIB //<sched.h>
 #endif /* solaris or LACKS_SCHED_H */
 #if (defined(USE_RECURSIVE_LOCKS) && USE_RECURSIVE_LOCKS != 0) || !USE_SPIN_LOCKS
-#include <pthread.h>
+#include PTHREAD_LIB //<pthread.h>
 #endif /* USE_RECURSIVE_LOCKS ... */
 #elif defined(_MSC_VER)
 #ifndef _M_AMD64
@@ -1576,7 +1579,7 @@ unsigned char _BitScanReverse(unsigned long *index, unsigned long mask);
 #        define malloc_getpagesize getpagesize()
 #      else
 #        ifndef LACKS_SYS_PARAM_H
-#          include <sys/param.h>
+#          //include SYS_PARAM <sys/param.h> TODO
 #        endif
 #        ifdef EXEC_PAGESIZE
 #          define malloc_getpagesize EXEC_PAGESIZE
@@ -1649,14 +1652,14 @@ namespace romuluslog{
 #if HAVE_MMAP
 
 #ifndef WIN32
-#define MUNMAP_DEFAULT(a, s)  munmap((a), (s))
-#define MMAP_PROT            (PROT_READ|PROT_WRITE)
+#define MUNMAP_DEFAULT(a, s)  SGX_MUNMAP(a, s) //munmap((a), (s))
+#define MMAP_PROT             SGX_MAP_PROT //(PROT_READ|PROT_WRITE)
 #if !defined(MAP_ANONYMOUS) && defined(MAP_ANON)
 #define MAP_ANONYMOUS        MAP_ANON
 #endif /* MAP_ANON */
 #ifdef MAP_ANONYMOUS
-#define MMAP_FLAGS           (MAP_PRIVATE|MAP_ANONYMOUS)
-#define MMAP_DEFAULT(s)       mmap(0, (s), MMAP_PROT, MMAP_FLAGS, -1, 0)
+#define MMAP_FLAGS            SGX_MAP_FLAGS //(MAP_PRIVATE|MAP_ANONYMOUS)
+#define MMAP_DEFAULT(s)       SGX_MAP_DEFAULT(s) //mmap(0, (s), MMAP_PROT, MMAP_FLAGS, -1, 0)
 #else /* MAP_ANONYMOUS */
 /*
    Nearly all versions of mmap support MAP_ANONYMOUS, so the following
@@ -1664,13 +1667,13 @@ namespace romuluslog{
 */
 #define MMAP_FLAGS           (MAP_PRIVATE)
 static int dev_zero_fd = -1; /* Cached file descriptor for /dev/zero. */
-#define MMAP_DEFAULT(s) ((dev_zero_fd < 0) ? \
+#define MMAP_DEFAULT(s) SGX_MAP_DEFAULT(s) //((dev_zero_fd < 0) ? \
            (dev_zero_fd = open("/dev/zero", O_RDWR), \
             mmap(0, (s), MMAP_PROT, MMAP_FLAGS, dev_zero_fd, 0)) : \
             mmap(0, (s), MMAP_PROT, MMAP_FLAGS, dev_zero_fd, 0))
 #endif /* MAP_ANONYMOUS */
 
-#define DIRECT_MMAP_DEFAULT(s) MMAP_DEFAULT(s)
+#define DIRECT_MMAP_DEFAULT(s) SGX_MAP_DEFAULT(s) //MMAP_DEFAULT(s)
 
 #else /* WIN32 */
 
@@ -1713,7 +1716,7 @@ static FORCEINLINE int win32munmap(void* ptr, size_t size) {
 
 #if HAVE_MREMAP
 #ifndef WIN32
-#define MREMAP_DEFAULT(addr, osz, nsz, mv) mremap((addr), (osz), (nsz), (mv))
+#define MREMAP_DEFAULT(addr, osz, nsz, mv) //mremap((addr), (osz), (nsz), (mv)) TODO
 #endif /* WIN32 */
 #endif /* HAVE_MREMAP */
 
@@ -1739,17 +1742,17 @@ static FORCEINLINE int win32munmap(void* ptr, size_t size) {
     #ifdef MMAP
         #define CALL_MMAP(s)        MMAP(s)
     #else /* MMAP */
-        #define CALL_MMAP(s)        MMAP_DEFAULT(s)
+        #define CALL_MMAP(s)        MMAP_DEFAULT(s) //TODO
     #endif /* MMAP */
     #ifdef MUNMAP
         #define CALL_MUNMAP(a, s)   MUNMAP((a), (s))
     #else /* MUNMAP */
-        #define CALL_MUNMAP(a, s)   MUNMAP_DEFAULT((a), (s))
+        #define CALL_MUNMAP(a, s)   MUNMAP_DEFAULT((a), (s)) //TODO
     #endif /* MUNMAP */
     #ifdef DIRECT_MMAP
         #define CALL_DIRECT_MMAP(s) DIRECT_MMAP(s)
     #else /* DIRECT_MMAP */
-        #define CALL_DIRECT_MMAP(s) DIRECT_MMAP_DEFAULT(s)
+        #define CALL_DIRECT_MMAP(s) DIRECT_MMAP_DEFAULT(s) //TODO
     #endif /* DIRECT_MMAP */
 #else  /* HAVE_MMAP */
     #define USE_MMAP_BIT            (SIZE_T_ZERO)
@@ -1916,7 +1919,7 @@ static MLOCK_T malloc_global_mutex = 0;
   initialized to (casted) zero. If this is not the case, you will need to
   somehow redefine these or not use spin locks.
 */
-#define THREAD_ID_T           pthread_t
+#define THREAD_ID_T           SGX_PTHREAD_T//pthread_t
 #define CURRENT_THREAD        pthread_self()
 #define EQ_OWNER(X,Y)         pthread_equal(X, Y)
 #endif
@@ -2760,7 +2763,7 @@ static int has_segment_link(mstate m, msegmentptr ss) {
 #endif  /* PREACTION */
 
 #ifndef POSTACTION
-#define POSTACTION(M)
+#define POSTACTION(M) //TODO
 #endif  /* POSTACTION */
 
 #endif /* USE_LOCKS */
@@ -2787,11 +2790,11 @@ static void reset_on_error(mstate m);
 #else /* PROCEED_ON_ERROR */
 
 #ifndef CORRUPTION_ERROR_ACTION
-#define CORRUPTION_ERROR_ACTION(m) ABORT
+#define CORRUPTION_ERROR_ACTION(m) SGX_ABORT //ABORT
 #endif /* CORRUPTION_ERROR_ACTION */
 
 #ifndef USAGE_ERROR_ACTION
-#define USAGE_ERROR_ACTION(m,p) ABORT
+#define USAGE_ERROR_ACTION(m,p) SGX_ABORT //ABORT
 #endif /* USAGE_ERROR_ACTION */
 
 #endif /* PROCEED_ON_ERROR */
@@ -3183,7 +3186,7 @@ static int init_mparams(void) {
 #elif defined(LACKS_TIME_H)
       magic = (size_t)&magic ^ (size_t)0x55555555U;
 #else
-      magic = (size_t)(time(0) ^ (size_t)0x55555555U);
+      magic |= (size_t)8U;//(size_t)(time(0) ^ (size_t)0x55555555U); TODO
 #endif
       magic |= (size_t)8U;    /* ensure nonzero */
       magic &= ~(size_t)7U;   /* improve chances of fault for bad values */
@@ -3558,9 +3561,9 @@ static void internal_malloc_stats(mstate m) {
       }
     }
     POSTACTION(m); /* drop lock */
-    fprintf(stderr, "max system bytes = %10lu\n", (unsigned long)(maxfp));
-    fprintf(stderr, "system bytes     = %10lu\n", (unsigned long)(fp));
-    fprintf(stderr, "in use bytes     = %10lu\n", (unsigned long)(used));
+    sgx_printf("max system bytes = %10lu\n", (unsigned long)(maxfp));//modified from fprint(stderr,...) to enclave print ocall..remove TODO
+    sgx_printf("system bytes     = %10lu\n", (unsigned long)(fp));
+    sgx_printf("in use bytes     = %10lu\n", (unsigned long)(used));
   }
 }
 #endif /* NO_MALLOC_STATS */
@@ -3831,6 +3834,7 @@ static void internal_malloc_stats(mstate m) {
 */
 
 /* Malloc using mmap */
+
 static void* mmap_alloc(mstate m, size_t nb) {
   size_t mmsize = mmap_align(nb + SIX_SIZE_T_SIZES + CHUNK_ALIGN_MASK);
   if (m->footprint_limit.pload() != 0) {
@@ -3838,7 +3842,7 @@ static void* mmap_alloc(mstate m, size_t nb) {
     if (fp <= m->footprint || fp > m->footprint_limit)
       return 0;
   }
-  if (mmsize > nb) {     /* Check for wrap around 0 */
+  if (mmsize > nb) {     //Check for wrap around 0 
     char* mm = (char*)(CALL_DIRECT_MMAP(mmsize));
     if (mm != CMFAIL) {
       size_t offset = align_offset(chunk2mem(mm));
@@ -5508,7 +5512,7 @@ size_t destroy_mspace(mspace msp) {
 void* mspace_malloc(mspace msp, size_t bytes) {
   mstate ms = (mstate)msp;
   if (!ok_magic(ms)) {
-    USAGE_ERROR_ACTION(ms,ms);
+    //USAGE_ERROR_ACTION(ms,ms); TODO
     return 0;
   }
   if (!PREACTION(ms)) {
@@ -5747,7 +5751,7 @@ void* mspace_realloc(mspace msp, void* oldmem, size_t bytes) {
     mem = mspace_malloc(msp, bytes);
   }
   else if (bytes >= MAX_REQUEST) {
-    MALLOC_FAILURE_ACTION;
+    //MALLOC_FAILURE_ACTION; TODO
   }
 #ifdef REALLOC_ZERO_BYTES_FREES
   else if (bytes == 0) {
@@ -5786,7 +5790,7 @@ void* mspace_realloc(mspace msp, void* oldmem, size_t bytes) {
   return mem;
 }
 
-void* mspace_realloc_in_place(mspace msp, void* oldmem, size_t bytes) {
+ void* mspace_realloc_in_place(mspace msp, void* oldmem, size_t bytes) {
   void* mem = 0;
   if (oldmem != 0) {
     if (bytes >= MAX_REQUEST) {

@@ -32,9 +32,10 @@
 ######## SGX SDK Settings ########
 
 SGX_SDK ?= /opt/intel/sgxsdk
-SGX_MODE ?= HW
+SGX_MODE ?= SIM
 SGX_ARCH ?= x64
 SGX_DEBUG ?= 1
+ROM_CXX ?= g++-8 
 
 ifeq ($(shell getconf LONG_BIT), 32)
 	SGX_ARCH := x86
@@ -81,7 +82,7 @@ else
 	Urts_Library_Name := sgx_urts
 endif
 
-App_Cpp_Files := $(wildcard App/*.cpp) $(wildcard App/romulus/common/*.cpp) $(wildcard App/romulus/romuluslog/*.cpp) #$(wildcard App/*.cpp)
+App_Cpp_Files := $(wildcard App/*.cpp) 
 App_Include_Paths := -IApp -I$(SGX_SDK)/include
 
 App_C_Flags := -fPIC -Wno-attributes $(App_Include_Paths)
@@ -123,8 +124,18 @@ else
 endif
 Crypto_Library_Name := sgx_tcrypto
 
+#---------------------------------------------------------
+Rom_Folder :=  Enclave/romulus
+Rom_Include_Paths := -I$(Rom_Folder)
+Romulus_Cpp_Flags := -DPWB_IS_CLFLUSH $(Rom_Include_Paths) 
+Rom_Cpp_Files:= $(Rom_Folder)/romuluslog/RomulusLogSGX.cpp $(Rom_Folder)/romuluslog/malloc.cpp $(Rom_Folder)/common/ThreadRegistry.cpp
+#Rom_Cpp_Objects := $(Rom_Cpp_Files:.cpp=.o)
+Rom_Cpp_Objects := RomulusLogSGX.o malloc.o ThreadRegistry.o
+
+
+#-------------------------------------------------------
 Enclave_Cpp_Files := Enclave/Enclave.cpp
-Enclave_Include_Paths := -IEnclave -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/libcxx
+Enclave_Include_Paths := -IEnclave -IEnclave/romulus -IEnclave/romulus/romuluslog -I$(SGX_SDK)/include -I$(SGX_SDK)/include/tlibc -I$(SGX_SDK)/include/libcxx 
 
 Enclave_C_Flags := -nostdinc -fvisibility=hidden -fpie -fstack-protector $(Enclave_Include_Paths)
 Enclave_Cpp_Flags := $(Enclave_C_Flags) $(SGX_COMMON_CXXFLAGS) -nostdinc++
@@ -170,11 +181,12 @@ endif
 endif
 endif
 
+romulus := $(Rom_Cpp_Objects)
 
 .PHONY: all run
 
 ifeq ($(Build_Mode), HW_RELEASE)
-all: $(App_Name) $(Enclave_Name)
+all: $(App_Name) $(romulus) $(Enclave_Name)
 	@echo "The project has been built in release hardware mode."
 	@echo "Please sign the $(Enclave_Name) first with your signing key before you run the $(App_Name) to launch and access the enclave."
 	@echo "To sign the enclave use the command:"
@@ -182,7 +194,7 @@ all: $(App_Name) $(Enclave_Name)
 	@echo "You can also sign the enclave using an external signing tool."
 	@echo "To build the project in simulation mode set SGX_MODE=SIM. To build the project in prerelease mode set SGX_PRERELEASE=1 and SGX_MODE=HW."
 else
-all: $(App_Name) $(Signed_Enclave_Name)
+all: $(App_Name) $(romulus) $(Signed_Enclave_Name)
 endif
 
 run: all
@@ -211,6 +223,11 @@ $(App_Name): App/Enclave_u.o $(App_Cpp_Objects)
 	@$(CXX) $^ -o $@ $(App_Link_Flags)
 	@echo "LINK =>  $@"
 
+######## Romulus Objects ########
+
+## TODO: use wildcards once this works
+
+
 
 ######## Enclave Objects ########
 
@@ -228,14 +245,18 @@ Enclave/%.o: Enclave/%.cpp Enclave/Enclave_t.h
 	@$(CXX) $(Enclave_Cpp_Flags) -c $< -o $@
 	@echo "CXX  <=  $<"
 
-$(Enclave_Name): Enclave/Enclave_t.o $(Enclave_Cpp_Objects)
+$(Enclave_Name): Enclave/Enclave_t.o $(Enclave_Cpp_Objects) $(Rom_Cpp_Objects)
 	@$(CXX) $^ -o $@ $(Enclave_Link_Flags)
 	@echo "LINK =>  $@"
+
+$(romulus): $(Rom_Cpp_Files)
+	$(CXX) $(Romulus_Cpp_Flags) $(Enclave_Cpp_Flags) -c $^ 
+
 
 $(Signed_Enclave_Name): $(Enclave_Name)
 	@$(SGX_ENCLAVE_SIGNER) sign -key Enclave/Enclave_private.pem -enclave $(Enclave_Name) -out $@ -config $(Enclave_Config_File)
 	@echo "SIGN =>  $@"
 
-.PHONY: clean
+.PHONY: clean 
 clean:
-	@rm -f $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) $(App_Cpp_Objects) App/Enclave_u.* $(Enclave_Cpp_Objects) Enclave/Enclave_t.*
+	@rm -f $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) $(App_Cpp_Objects) App/Enclave_u.* $(Enclave_Cpp_Objects) Enclave/Enclave_t.* $(Rom_Cpp_Objects) /dev/shm/*

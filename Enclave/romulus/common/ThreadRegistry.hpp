@@ -4,11 +4,11 @@
 #include <atomic>
 //#include <thread>
 //#include <iostream>
-#include "../../Enclave.h" //for enclave's printf implem
+#include "RomSGX.h" //for enclave's sgx_printf implem
 #include <cassert>
 
 // Increase this if 128 threads is not enough
-static const int REGISTRY_MAX_THREADS = 128;
+static const int REGISTRY_MAX_THREADS = MAX_THREADS;
 
 
 extern void thread_registry_deregister_thread(const int tid);
@@ -25,7 +25,7 @@ struct ThreadCheckInCheckOut {
 };
 
 
-extern thread_local ThreadCheckInCheckOut tl_tcico;
+extern ThreadCheckInCheckOut tcico;
 
 
 // Forward declaration of global/singleton instance
@@ -69,10 +69,10 @@ public:
                 maxTid.compare_exchange_strong(curMax, tid+1);
                 curMax = maxTid.load();
             }
-            tl_tcico.tid = tid;
+            tcico.tid = tid;
             return tid;
         }
-        printf("ERROR: Too many threads, registry can only hold %d \n",REGISTRY_MAX_THREADS);        
+        sgx_printf("ERROR: Too many threads, registry can only hold %d \n",REGISTRY_MAX_THREADS);        
         assert(false); 
     }
 
@@ -94,7 +94,7 @@ public:
      * Progress condition: wait-free bounded (by the number of threads)
      */
     static inline int getTID(void) {
-        int tid = tl_tcico.tid;
+        int tid = tcico.tid;
         if (tid != ThreadCheckInCheckOut::NOT_ASSIGNED) return tid;
         return gThreadRegistry.register_thread_new();
     }

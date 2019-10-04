@@ -1,5 +1,5 @@
-#ifndef NVRAM_H
-#define NVRAM_H
+#ifndef PFENCES_H
+#define PFENCES_H
 
 //#include <fcntl.h> header for file control
 //#include <pthread.h> thread managment
@@ -94,4 +94,4 @@ inline static void flushFromTo(void* from, void* to) noexcept {
 }
 //-----------------------------
 
-#endif /*NVRAM_H*/
+#endif /* PFENCES_H */

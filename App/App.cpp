@@ -41,45 +41,88 @@
 #include <sgx_uswitchless.h> //for switchless calls
 #include "App.h"
 #include "Enclave_u.h"
+#include "ErrorSupport.h"
 
 /* For pmem */
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <unistd.h>
 #include <sys/mman.h>
 #include <fcntl.h>
+
+/* For romulus */
 
 #define MAX_PATH FILENAME_MAX
 
 /* Global EID shared by multiple threads */
 sgx_enclave_id_t global_eid = 0;
 
-/* For memory mapped file */
-const char *MMAP_FILENAME = "/dev/shm/pool";
-int fd = -1;
-uint8_t *base_addr;
-uint64_t max_size; //default = 8MB ie 8*1024*1024
+uint8_t *base_addr = (uint8_t *)0x7fdd40000000;
+static int fd = -1;
 
+/* Create file and do mmap */
+void create_file()
+{
+   
+    struct stat buf;
+    if (stat(MMAP_FILENAME, &buf) == 0)
+    {
+        // File exists
+        //std::cout << "Re-using memory region\n";
+        fd = open(MMAP_FILENAME, O_RDWR | O_CREAT, 0755);
+        assert(fd >= 0);
+        // mmap() memory range
+        uint8_t *got_addr = (uint8_t *)mmap(base_addr,MAX_SIZE, (PROT_READ | PROT_WRITE), MAP_SHARED, fd, 0);
+        if (got_addr == MAP_FAILED)
+        {
+            printf("got_addr = %p  %p\n", got_addr, MAP_FAILED);
+            perror("ERROR: mmap() is not working !!! ");
+            assert(false);
+        }
+    }
+    else
+    {
+        // File doesn't exist
+        fd = open(MMAP_FILENAME, O_RDWR | O_CREAT, 0755);
+        assert(fd >= 0);
+        if (lseek(fd, MAX_SIZE - 1, SEEK_SET) == -1)
+        {
+            perror("lseek() error");
+        }
+        if (write(fd, "", 1) == -1)
+        {
+            perror("write() error");
+        }
+        // mmap() memory range
+        uint8_t *got_addr = (uint8_t *)mmap(base_addr, MAX_SIZE, (PROT_READ | PROT_WRITE), MAP_SHARED, fd, 0);
+        if (got_addr == MAP_FAILED)
+        {
+            printf("got_addr = %p  %p\n", got_addr, MAP_FAILED);
+            perror("ERROR: mmap() is not working !!! ");
+            assert(false);
+        }
+    }
+    printf("mmapped file created\n");
+}
 
+/* Do munmap and close file */
+void my_ocall_close(){
+    assert(fd >= 0);
+    munmap(base_addr,MAX_SIZE);
+    close(fd);
 
+}
 
 /* Initialize the enclave:
  *   Call sgx_create_enclave to initialize an enclave instance
  */
-int initialize_enclave(const sgx_uswitchless_config_t *us_config)
+int initialize_enclave(void)
 {
     sgx_status_t ret = SGX_ERROR_UNEXPECTED;
-
+    
     /* Call sgx_create_enclave to initialize an enclave instance */
     /* Debug Support: set 2nd parameter to 1 */
-
-    const void *enclave_ex_p[32] = {0};
-
-    enclave_ex_p[SGX_CREATE_ENCLAVE_EX_SWITCHLESS_BIT_IDX] = (const void *)us_config;
-
-    ret = sgx_create_enclave_ex(ENCLAVE_FILENAME, SGX_DEBUG_FLAG, NULL, NULL, &global_eid, NULL, SGX_CREATE_ENCLAVE_EX_SWITCHLESS, enclave_ex_p);
-    if (ret != SGX_SUCCESS)
-    {
+    ret = sgx_create_enclave(ENCLAVE_FILENAME, SGX_DEBUG_FLAG, NULL, NULL, &global_eid, NULL);
+    if (ret != SGX_SUCCESS) {
         print_error_message(ret);
         return -1;
     }
@@ -87,7 +130,15 @@ int initialize_enclave(const sgx_uswitchless_config_t *us_config)
     return 0;
 }
 
+
 /* OCall functions */
+void ocall_createFile()
+{
+    printf("ocall create file called\n");    
+    create_file();//maybe you could delete the file here to be sure it doesn't exist..
+    ecall_init(global_eid,base_addr);
+}
+
 void ocall_print_string(const char *str)
 {
     /* Proxy/Bridge will check the length and null-terminate
@@ -96,8 +147,6 @@ void ocall_print_string(const char *str)
     printf("%s", str);
 }
 
-void ocall_empty(void) {}
-void ocall_empty_switchless(void) {}
 
 /* Application entry */
 int SGX_CDECL main(int argc, char *argv[])
@@ -105,57 +154,21 @@ int SGX_CDECL main(int argc, char *argv[])
     (void)argc;
     (void)argv;
 
-    /* Configuration for Switchless SGX */
-    sgx_uswitchless_config_t us_config = SGX_USWITCHLESS_CONFIG_INITIALIZER;
-    us_config.num_uworkers = 2;
-    us_config.num_tworkers = 2;
+    sgx_status_t ret;
 
     /* Initialize the enclave */
-    if (initialize_enclave(&us_config) < 0)
-    {
-        printf("Error: enclave initialization failed\n");
-        return -1;
-    }
+    if(initialize_enclave() < 0){
+        printf("Enter a character before exit ...\n");
+        getchar();
+        return -1; 
+    }   
+    //Create file and do mmap
+    //create_file();
+    printf("base addr is : %p\n",base_addr);
 
-    base_addr = NULL; //for testing purposes.
-
-    /* Most of this code is from romulus */
-    // base_addr = (uint8_t *)0x7fde80000000; //if null mmap chooses one for you
-    max_size = 8 * 1024 * 1024; // I choose 8mb
-    //struct stat buf;
-
-    // Opens file if it exists, else creates file and opens
-    fd = open(MMAP_FILENAME, O_RDWR | O_CREAT, 0755);
-    assert(fd >= 0);
-
-    if (lseek(fd, max_size - 1, SEEK_SET) == -1) //reposition file offset to beginning of file
-    {
-        printf("lseek() error\n");
-    }
-    if (write(fd, "", 1) == -1)
-    {
-        printf("write() error\n");
-    }
-    // mmap file into application's virtual memory (Range: base_addr---->base_addr+max_size) if base_addr != NULL
-    uint8_t *got_addr = (uint8_t *)mmap(NULL, max_size, (PROT_READ | PROT_WRITE), MAP_SHARED, fd, 0);
-    if (got_addr == MAP_FAILED)
-    {
-        printf("got_addr = %p  %p\n", got_addr, MAP_FAILED);
-        printf("ERROR: mmap() is not working !!! ");
-        assert(false); //aborts app
-    }
-
-    //Allocate an int in the mapped file
-
-    //int *data = (int *)malloc(sizeof(int)); //test pwb on normal ram addr
-    int *data = (int *)(got_addr); //allocate an int at the start of the base addr
-
-    printf("Base addr is :%p\n", got_addr); //print base address of mmapped portion.
-
-    //printf("saved int is %d: \n",*data);// uncomment this portion to test for persistence.
-    //return 0;
-    ecall_test_pwb(global_eid, data);
-    printf("Value of data is: %d\n", *data);
+    //Initialize enclave with base addr.
+    empty_ecall(global_eid);
+    //could launch worker inside ecall
 
     sgx_destroy_enclave(global_eid);
     return 0;
