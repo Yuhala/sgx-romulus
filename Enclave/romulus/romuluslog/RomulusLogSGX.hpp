@@ -36,9 +36,9 @@ extern uint64_t g_main_size;
 extern uint8_t *g_main_addr;
 
 // Counter of nested write transactions
-extern int64_t nested_write_trans; //thread local
+extern thread_local int64_t tl_nested_write_trans; //thread local
 // Counter of nested read-only transactions
-extern int64_t nested_read_trans; //thread local
+extern thread_local int64_t tl_nested_read_trans; //thread local
 extern bool histoOn;
 extern bool histoflag;
 
@@ -85,7 +85,7 @@ class RomulusLog
 
     bool dommap;
     //int fd = -1;
-    uint8_t *base_addr;
+    uint8_t *base_addr = (uint8_t *)0x7fdd40000000;
     uint8_t *real_base_addr;
     uint8_t *main_addr;
     uint8_t *back_addr;
@@ -93,17 +93,16 @@ class RomulusLog
     LogChunk *log_head = new LogChunk; //romAttrib_out->log_head;
     LogChunk *log_tail = log_head;
 
-    // Volatile pointer to start of persistent memory
-    PersistentHeader *per{nullptr};
+   
     uint64_t log_size = 0;
     // Aligned just to make sure there is no false-sharing with rwlock below
     alignas(128) bool logEnabled = true;
 
 #ifdef USE_ESLOCO
-    EsLoco<persist> *esloco{nullptr};
+    EsLoco<persist> *esloco {nullptr};
 #endif
 
-    CRWWPSpinLock rwlock{};
+    CRWWPSpinLock rwlock {};
 
     // Array of atomic pointers to functions (used by Flat Combining)
     alignas(128) std::atomic<std::function<void()> *> *fc;
@@ -112,6 +111,8 @@ class RomulusLog
 public:
     int *histo = new int[300]; // array of atomic pointers to functions
     int storecount = 0;
+     // Volatile pointer to start of persistent memory
+    PersistentHeader *per {nullptr}; //normally private
 
     // Flush touched cache lines
     inline static void flush_range(uint8_t *addr, size_t length) noexcept
@@ -235,6 +236,7 @@ public:
         }
         if (chunk->num_entries == CHUNK_SIZE)
         {
+            sgx_printf("Log full, allocating more log space\n");
             //chunk=new LogChunk();
             chunk = new LogChunk(); //This eventually makes an ocall..if perf not good remove it and increase chunk size..
             log_tail->next = chunk;
@@ -266,7 +268,7 @@ public:
         {
             fc[i * CLPAD].store(nullptr, std::memory_order_relaxed);
         }
-        ns_init();
+        //ns_init();
         // Filename for the mapping file
         /*if (dommap) {
 
@@ -293,16 +295,12 @@ public:
 
     void ns_init()
     {
-        base_addr = base_addr_in; //this will be mmapped outside
-     
+        base_addr = base_addr_in; //this will be mmapped outside      
         real_base_addr = (uint8_t *)(((size_t)(base_addr + 128) << 6) >> 6);
-        per = reinterpret_cast<PersistentHeader *>(real_base_addr - sizeof(PersistentHeader));
-   sgx_printf("In romulus init,base addr: %p\n",base_addr);
+        
 
-        if (1)//per->id == MAGIC_ID)
-        {
-            sgx_printf("Per id not good\n");
-            do_create_file(); //enclave will invoke an ocall to redo mmap on file
+        if (per->id != MAGIC_ID)        {
+            
             do_mspacing();
         }
         else
@@ -316,6 +314,7 @@ public:
 #ifdef USE_ESLOCO
         esloco = new EsLoco<persist>(main_addr, g_main_size, false);
 #endif
+        
         recover();
     }
 
@@ -339,11 +338,10 @@ public:
 
     void do_mspacing()
     {
-        
+
         // No data in persistent memory, initialize
-         sgx_printf("doing mspacing: realbaseaddr: %p\n",real_base_addr);
-        per = new ((real_base_addr - sizeof(PersistentHeader))) PersistentHeader;
-       
+        sgx_printf("No data in pmem, initializing..\n");        
+
         //uint8_t* lostBytes = real_base_addr - base_addr;
         g_main_size = (max_size - (real_base_addr - base_addr)) / 2;
         main_addr = real_base_addr;
@@ -361,6 +359,7 @@ public:
         esloco = new EsLoco<persist>(main_addr, g_main_size, false);
         per->objects = (void **)esloco->malloc(sizeof(void *) * NUM_ROOT_PTRS);
 #else
+       
         per->ms = create_mspace_with_base(main_addr, g_main_size, false);
         per->objects = (void **)mspace_malloc(per->ms, sizeof(void *) * NUM_ROOT_PTRS);
 #endif
@@ -381,6 +380,8 @@ public:
         PSYNC();
         consistency_check();
     }
+
+    //TODO..
     void ns_reset()
     {
         per->id = MAGIC_ID;
@@ -437,8 +438,8 @@ public:
     inline void begin_transaction()
     {
         // Check for nested transaction
-        nested_write_trans++;
-        if (nested_write_trans != 1)
+       tl_nested_write_trans++;
+        if (tl_nested_write_trans != 1)
             return;
         per->state.store(MUTATING, std::memory_order_relaxed);
         PWB(&per->state);
@@ -453,8 +454,8 @@ public:
     inline void end_transaction()
     {
         // Check for nested transaction
-        --nested_write_trans;
-        if (nested_write_trans != 0)
+        --tl_nested_write_trans;
+        if (tl_nested_write_trans != 0)
             return;
         // Do a PFENCE() to make persistent the stores done in 'main' and on
         // the Romulus persistent data (due to memory allocation). We only care
@@ -520,6 +521,7 @@ public:
         int lstate = per->state.load(std::memory_order_relaxed);
         if (lstate == IDLE)
         {
+            sgx_printf("RomulsLog: IDLE..\n");
             return;
         }
         else if (lstate == COPYING)
@@ -534,6 +536,7 @@ public:
         }
         else
         {
+
             assert(false);
             // ERROR: corrupted state
         }
@@ -567,7 +570,8 @@ public:
     template <class Func>
     void ns_write_transaction(Func &&mutativeFunc)
     {
-        if (nested_write_trans > 0)
+        sgx_printf("In blocking ns write trans\n");
+        if (tl_nested_write_trans > 0)
         {
             mutativeFunc();
             return;
@@ -584,7 +588,7 @@ public:
             // Check if another thread executed my mutation
             if (fc[tid * CLPAD].load(std::memory_order_acquire) == nullptr)
                 return;
-            //std::this_thread::yield(); TODO
+            Pause(); 
         }
 
         bool somethingToDo = false;
@@ -612,7 +616,7 @@ public:
         PFENCE();
         rwlock.waitForReaders();
 
-        ++nested_write_trans;
+        ++tl_nested_write_trans;
         // Apply all mutativeFunc
         for (int i = 0; i < maxTid; i++)
         {
@@ -652,24 +656,25 @@ public:
         if (histoflag)
             histo[storecount]++;
         rwlock.exclusiveUnlock();
-        --nested_write_trans;
+        --tl_nested_write_trans;
     }
 
     // Non-static thread-safe read-only transaction
     template <class Func>
     void ns_read_transaction(Func &&readFunc)
     {
-        if (nested_read_trans > 0)
+        if (tl_nested_read_trans > 0)
         {
             readFunc();
             return;
         }
         int tid = ThreadRegistry::getTID();
-        ++nested_read_trans;
+        //sgx_printf("read trans for thread: %d\n",tid);
+        ++tl_nested_read_trans;
         rwlock.sharedLock(tid);
         readFunc();
         rwlock.sharedUnlock(tid);
-        --nested_read_trans;
+        --tl_nested_read_trans;
     }
 
     // static thread-safe read-only transaction
@@ -723,10 +728,13 @@ public:
         void *addr = r.esloco->malloc(sizeof(T));
         assert(addr != nullptr);
 #else
-        void *addr = mspace_malloc(r.per->ms, sizeof(T));
+        void *addr = mspace_malloc(r.per->ms, sizeof(T));        
         assert(addr != 0);
 #endif
+        sgx_printf("problem with placement new: \n");
         T *ptr = new (addr) T(std::forward<Args>(args)...); // placement new
+        
+       
         if (r.per->used_size < (uint8_t *)addr - r.main_addr + sizeof(T) + 128)
         {
             r.per->used_size = (uint8_t *)addr - r.main_addr + sizeof(T) + 128;
@@ -838,16 +846,16 @@ public:
      */
     static bool consistency_check(void)
     {
-        if (nested_write_trans > 0)
+        if (tl_nested_write_trans > 0)
         {
             sgx_printf("Warning: don't call consistency_check() inside a transaction\n");
         }
         else
         {
             //Peterson Yuhala: commented out thread related code
-            // while (!gRomLog.rwlock.tryExclusiveLock()) std::this_thread::yield();
+            while (!gRomLog.rwlock.tryExclusiveLock()) Pause();
             gRomLog.compareMainAndBack();
-            //gRomLog.rwlock.exclusiveUnlock();
+            gRomLog.rwlock.exclusiveUnlock();
         }
         return true;
     }

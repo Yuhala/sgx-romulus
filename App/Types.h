@@ -3,45 +3,20 @@
  * Based of RomulusLog code by: Andreia Correia, Pascal Felber, Pedro Ramalhete
  */
 
-#ifndef TYPES_ROM_H
-#define TYPES_ROM_H
+#ifndef TYPES_H
+#define TYPES_H
 #include <cstdint>
 #include <atomic>
-#include <functional>
-//--------------------------------------------------------------
-#define CHUNK_SIZE_H 1024
-#define MAX_SIZE 10 * 1024 * 1024 //100mb
-#define MAGIC_ID_H 0x1337BAB2
-#define CLPAD_H (128 / sizeof(uintptr_t)) //
-#define NUM_ROOTS 100
-#define MAX_THREADS 1 //single threading for now
 
 /* Log states */
 #define STATE_0 0 /* IDLE */
 #define STATE_1 1 /* MUTATING */
 #define STATE_2 2 /* COPYING */
 
+//this file will be included in the .edl file so must be pure C..
 /* Typedefs */
 typedef void *mspace;
-
-// One instance of this is at the start of base_addr, in persistent memory
-
-    typedef struct LogEntry
-    {
-        size_t offset;   // Pointer offset in bytes, relative to main_addr
-        uint64_t length; // Range length of data at pointer offset
-
-    } LogEntry;
-
-    typedef struct LogChunk
-    {
-        LogEntry entries[CHUNK_SIZE_H];
-        uint64_t num_entries{0};
-        LogChunk *next{nullptr};
-
-    } LogChunk;
-
-    typedef struct PersistentHeader
+ typedef struct PersistentHeader
     {
         uint64_t id {0};                  // Validates intialization
         std::atomic<int> state {STATE_0}; // Current state of consistency
@@ -53,7 +28,6 @@ typedef void *mspace;
      uint64_t used_size {0};
 
     } PersistentHeader;
-
 
 
 #endif /*!ROMSGX_H*/

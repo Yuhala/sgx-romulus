@@ -8,9 +8,17 @@
 
 #include <cstdint>  //for uint64_t
 #include <stdlib.h> //for size_t
-#include <atomic>
-#include "Types.h"
+#include <atomic> //for atomic vars
 
+
+
+
+#define CHUNK_SIZE_H 1024
+#define MAX_SIZE 10 * 1024 * 1024 //100mb
+#define MAGIC_ID_H 0x1337BAB2
+#define CLPAD_H (128 / sizeof(uintptr_t)) //
+#define NUM_ROOTS 100
+#define MAX_THREADS 10 //single threading for now
 //---------------------------------------------------------------
 
 /**
@@ -36,9 +44,16 @@
 
 
 //--------------------------------------------------------------
-
-//extern romAttrib *romAttrib_out; //contains the values of the untrusted romulus object
 extern uint8_t *base_addr_in;
+
+#if defined( __sparc )
+#define Pause() __asm__ __volatile__ ( "rd %ccr,%g0" )
+#elif defined( __i386 ) || defined( __x86_64 )
+#define Pause() __asm__ __volatile__ ( "pause" : : : )
+#else
+//#define Pause() std::this_thread::yield();
+#endif
+
 
 //------------------------------------------------------------------------------------
 
@@ -49,13 +64,12 @@ extern uint8_t *base_addr_in;
 #if defined(__cplusplus)
 extern "C" {
 #endif
-
-void do_create_file();
+int __cxa_thread_atexit(void (*dtor)(void *), void *obj, void *dso_symbol);
 void do_mmap();
 void do_close();
 void abort_h();
 int sgx_printf(const char* fmt, ...);
-int __cxa_thread_atexit() throw();
+
 
 #if defined(__cplusplus)
 }
@@ -63,19 +77,3 @@ int __cxa_thread_atexit() throw();
 
 #endif /*!ROMSGX_H*/
 
-/**
- * ///////////////////////
-#-----------------------------------------------------------------------------------------------------
-$(Rom_Folder)/romuluslog/RomulusLogSGX.o: $(Rom_Folder)/romuluslog/RomulusLogSGX.cpp $(Rom_Folder)/romuluslog/RomulusLogSGX.hpp
-	$(ROM_CXX) $(Romulus_Cpp_Flags) -c $< -o $@
-	@echo "Compiling RomulusLogSGX class"
-
-$(Rom_Folder)/romuluslog/malloc.o: $(Rom_Folder)/romuluslog/malloc.cpp
-	$(ROM_CXX) $(Romulus_Cpp_Flags) -c $< -o $@
-	@echo "Compiling romulus malloc file"
-
-$(Rom_Folder)/common/ThreadRegistry.o: $(Rom_Folder)/common/ThreadRegistry.cpp $(Rom_Folder)/common/ThreadRegistry.hpp
-	$(ROM_CXX) $(Romulus_Cpp_Flags) -c $< -o $@
-	@echo "Compiling romulus ThreadRegistry.cpp"
-#---------------------------------------------------------------------------------------------------------
-*/

@@ -75,14 +75,19 @@ private:
     public:
         bool isLocked() { return (writers.load()==1); }
         void lock() {
-            while (!tryLock()) continue;//Pause();
+            while (!tryLock()) {
+                 sgx_printf("thread locking pmo\n");
+                 Pause();
+            }
         }
         bool tryLock() {
+            sgx_printf("thread trying lock\n");
             if(writers.load()==1)return false;
             int tmp = 0;
             return writers.compare_exchange_strong(tmp,1);
         }
         void unlock() {
+            sgx_printf("thread unlocked pmo\n");
             writers.store(0, std::memory_order_release);
         }
     };
@@ -133,10 +138,11 @@ public:
 
     void exclusiveLock() {
         splock.lock();
-        while (!ri.isEmpty()) continue;//Pause();
+        while (!ri.isEmpty()) Pause();
     }
 
     bool tryExclusiveLock() {
+        sgx_printf("trying exc lock\n");
         return splock.tryLock();
     }
 
@@ -149,7 +155,7 @@ public:
             ri.arrive(tid);
             if (!splock.isLocked()) break;
             ri.depart(tid);
-            while (splock.isLocked()) continue;//Pause();
+            while (splock.isLocked()) Pause();
         }
     }
 

@@ -5512,6 +5512,7 @@ size_t destroy_mspace(mspace msp) {
 void* mspace_malloc(mspace msp, size_t bytes) {
   mstate ms = (mstate)msp;
   if (!ok_magic(ms)) {
+    sgx_printf("ok magic error\n");
     //USAGE_ERROR_ACTION(ms,ms); TODO
     return 0;
   }

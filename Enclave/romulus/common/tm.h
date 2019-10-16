@@ -8,7 +8,7 @@
 
 
 #ifdef ROMULUS_LOG_PTM
-#include "romuluslog/RomulusLog.hpp"
+#include "romuluslog/RomulusLogSGX.hpp"
 #define TM_WRITE_TRANSACTION   romuluslog::RomulusLog::write_transaction
 #define TM_READ_TRANSACTION    romuluslog::RomulusLog::read_transaction
 #define TM_BEGIN_TRANSACTION() romuluslog::gRomLog.begin_transaction()
@@ -24,18 +24,3 @@
 #endif
 
 
-
-#ifdef NOTHING_STM
-#include "NothingTM.hpp"
-#define TM_WRITE_TRANSACTION   nothingtm::write_transaction
-#define TM_READ_TRANSACTION    nothingtm::read_transaction
-#define TM_BEGIN_TRANSACTION   nothingtm::begin_transaction
-#define TM_END_TRANSACTION     nothingtm::end_transaction
-#define TM_ALLOC               nothingtm::alloc
-#define TM_FREE                nothingtm::free
-#define TM_PMALLOC             nothingtm::pmalloc
-#define TM_PFREE               nothingtm::pfree
-#define TM_TYPE                nothingtm::tmtype
-#define TM_NAME                nothingtm::NothingTM::className
-#define TM_CONSISTENCY_CHECK   nothingtm::NothingTM::consistency_check
-#endif

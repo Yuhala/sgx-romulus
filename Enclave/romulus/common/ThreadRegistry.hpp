@@ -25,7 +25,7 @@ struct ThreadCheckInCheckOut {
 };
 
 
-extern ThreadCheckInCheckOut tcico;
+extern thread_local ThreadCheckInCheckOut tl_tcico;
 
 
 // Forward declaration of global/singleton instance
@@ -69,7 +69,7 @@ public:
                 maxTid.compare_exchange_strong(curMax, tid+1);
                 curMax = maxTid.load();
             }
-            tcico.tid = tid;
+            tl_tcico.tid = tid;
             return tid;
         }
         sgx_printf("ERROR: Too many threads, registry can only hold %d \n",REGISTRY_MAX_THREADS);        
@@ -94,10 +94,11 @@ public:
      * Progress condition: wait-free bounded (by the number of threads)
      */
     static inline int getTID(void) {
-        int tid = tcico.tid;
+        int tid = tl_tcico.tid;
         if (tid != ThreadCheckInCheckOut::NOT_ASSIGNED) return tid;
         return gThreadRegistry.register_thread_new();
     }
+ 
 };
 
 #endif /* _THREAD_REGISTRY_H_ */
