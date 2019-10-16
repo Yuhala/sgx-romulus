@@ -22,14 +22,14 @@ push and pop data to/from the stack. Each thread-id is printed for the push/pop.
 ## How to Build/Execute the code
 - Install Intel(R) SGX SDK for Linux* OS
 - Build the project with the prepared Makefile:
-    a. Hardware Mode, Debug build:
-        $ make SGX_MODE=HW SGX_DEBUG=1
-    b. Hardware Mode, Pre-release build:
-        $ make SGX_MODE=HW SGX_PRERELEASE=1
-    c. Hardware Mode, Release build:
-        $ make SGX_MODE=HW
+    ### Hardware Mode, Debug build:
+        ```$ make SGX_MODE=HW SGX_DEBUG=1```
+    ### Hardware Mode, Pre-release build:
+        ```$ make SGX_MODE=HW SGX_PRERELEASE=1```
+    ### Hardware Mode, Release build:
+        ```$ make SGX_MODE=HW```
 - Execute the binary directly:
-    $ ./app
+    ```$ ./app```
 
 
 - The code can be debugged with `sgx-gdb` debug tool. 
