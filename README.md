@@ -10,7 +10,8 @@ VAS via the `rom_init` routine; the trusted component of sgx-romulus is the fold
 header information. Once that is done, sgx-romulus is ready to create and manipulate persistent data structures. All data written to pmem could be encrypted within the
 enclave for confidentiality. Under normal circumstances, an enclave exit is not necessary to correctly manipulate pmem within the enclave except for special ecalls e.g
 on an abort.
-- At the moment sgx-romulus is still in development mode but is already largely functional and can be used for a project. 
+- At the moment sgx-romulus is still in development mode but is already largely functional and can be used for a project. Confidentiality of persistent data using encryption is enough when encryption is done but work still needs to be done to improve the overall integrity of the persistent memory metadata.
+
 
 ## Example project
 - The example application in this project creates a persistent stack on pmem from inside the enclave. Multiple threads are created outside the enclave and they all 
