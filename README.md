@@ -9,8 +9,9 @@ VAS via the `rom_init` routine; the trusted component of sgx-romulus is the fold
 - Once the memory mapping is done in the untrusted runtime, the application calls the `ecall_init` routine to initialize the trusted romulus instance with the memory mapped portion and persistent
 header information. Once that is done, sgx-romulus is ready to create and manipulate persistent data structures. All data written to pmem could be encrypted within the
 enclave for confidentiality. Under normal circumstances, an enclave exit is not necessary to correctly manipulate pmem within the enclave except for special ecalls e.g
-on an abort.
-- At the moment sgx-romulus is still in development mode but is already largely functional and can be used for a project. Confidentiality of persistent data using encryption is enough when encryption is done but work still needs to be done to improve the overall integrity of the persistent memory metadata.
+on an abort. 
+- On application termination the ocall `my_ocall_close` does the `munmap` of the pmem file.
+- At the moment sgx-romulus is still in development mode but is already largely functional and can be used for an sgx/pmem project. Confidentiality of persistent data using encryption is enough when encryption is done but work still needs to be done to improve the overall integrity of the persistent memory metadata.
 
 
 ## Example project
