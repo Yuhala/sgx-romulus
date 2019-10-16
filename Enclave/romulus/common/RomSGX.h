@@ -51,7 +51,7 @@ extern uint8_t *base_addr_in;
 #elif defined( __i386 ) || defined( __x86_64 )
 #define Pause() __asm__ __volatile__ ( "pause" : : : )
 #else
-//#define Pause() std::this_thread::yield();
+//#define Pause() std::this_thread::yield(); //does not work with sgx
 #endif
 
 

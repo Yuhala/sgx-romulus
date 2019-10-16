@@ -259,4 +259,4 @@ $(Signed_Enclave_Name): $(Enclave_Name)
 
 .PHONY: clean 
 clean:
-	@rm -f $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) $(App_Cpp_Objects) App/Enclave_u.* $(Enclave_Cpp_Objects) Enclave/Enclave_t.* $(Rom_Cpp_Objects) /dev/shm/*
+	@rm -f $(App_Name) $(Enclave_Name) $(Signed_Enclave_Name) $(App_Cpp_Objects) App/Enclave_u.* $(Enclave_Cpp_Objects) Enclave/Enclave_t.* $(Rom_Cpp_Objects) 

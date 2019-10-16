@@ -32,15 +32,18 @@ public:
 
     // Returns EMPTY if the stack has no keys
     uint64_t pop(void) {
-        uint64_t key = EMPTY;
+        uint64_t key = 999999;//EMPTY;
         TM_WRITE_TRANSACTION([&] () {
-           if (head == nullptr) return;
+           if (head == nullptr){
+               sgx_printf("Stack empty...\n");
+               return;
+           };
            Node* node = head;
            key = node->key;
-           head = node->next;
+           head = node->next;           
            TM_PFREE(node);
            
-        });
+        });        
         return key;
     }
 };

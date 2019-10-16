@@ -34,9 +34,7 @@ int sgx_printf(const char *fmt, ...)
 void abort_h()
 {
     sgx_printf("called abort from rom sgx\n");
-    
 }
-
 
 void do_close()
 {
@@ -65,44 +63,53 @@ void ecall_init(void *per_out, uint8_t *base_addr_out)
 
     sgx_printf("Enclave init success..init base address for pmem\n");
 
-
     // Create an empty stack in PM and save the root pointer (index 0) to use in a later tx
     TM_WRITE_TRANSACTION([&]() {
-        sgx_printf("Creating persistent stack...\n");
-        PStack *pstack = (PStack *)TM_PMALLOC(sizeof(struct PStack));
-        RomulusLog::put_object(0, pstack);
+        PStack *pstack = RomulusLog::get_object<PStack>(0);
+        if (pstack == nullptr)
+        {
+            sgx_printf("Creating persistent stack...\n");
+            PStack *pstack = (PStack *)TM_PMALLOC(sizeof(struct PStack));
+            RomulusLog::put_object(0, pstack);
+        }
+        else
+        {
+            sgx_printf("Persistent stack exists...\n");
+        }
     });
-   
-    
 }
 
 /* Worker: core data structure manipulations initialize from here */
-void ecall_nvram_worker(int val,size_t tid)
+void ecall_nvram_worker(int val, size_t tid)
 {
     //start worker: worker pushes and pops values from the start
-    do_work(val,tid);
-   
+    do_work(val, tid);
 }
 
-void do_work(int val,size_t tid)
-{   
+void do_work(int val, size_t tid)
+{
 
-    //sgx_printf("\nEnclave worker: %d  Value: %d\n",tid,val);
+    //Pops a value from the persistent stack
+    TM_WRITE_TRANSACTION([&]() {
+        PStack *pstack = RomulusLog::get_object<PStack>(0);
+        // sgx_printf("Popped two items: %ld and %ld\n", pstack->pop(), pstack->pop());
+        // This one should be "EMTPY" which is 999999999
+        sgx_printf("Worker: %d Popped : %ld\n",tid, pstack->pop());
+    });
 
-
-    // Add two items to the persistent stack
+    // Add items to the persistent stack
     TM_WRITE_TRANSACTION([&]() {
         PStack *pstack = RomulusLog::get_object<PStack>(0);
         pstack->push(val);
-        
+        //pstack->push(44);
     });
 
     // Pop two items from the persistent stack
     TM_WRITE_TRANSACTION([&]() {
         PStack *pstack = RomulusLog::get_object<PStack>(0);
-       // sgx_printf("Popped two items: %ld and %ld\n", pstack->pop(), pstack->pop());
+        // sgx_printf("Popped two items: %ld and %ld\n", pstack->pop(), pstack->pop());
         // This one should be "EMTPY" which is 999999999
-        sgx_printf("Worker: %d Pushed and Popped : %ld\n",tid, pstack->pop());
+        sgx_printf("Worker: %d Pushed and Popped : %ld\n", tid, pstack->pop());
     });
 
     // Delete the persistent stack from persistent memory

@@ -268,7 +268,7 @@ public:
         {
             fc[i * CLPAD].store(nullptr, std::memory_order_relaxed);
         }
-        //ns_init();
+        //ns_init(); //init is called explicity during enclave initialization else gRomLog does not obtain the mapped area properties in time.
         // Filename for the mapping file
         /*if (dommap) {
 
@@ -487,6 +487,7 @@ public:
 
     bool compareMainAndBack()
     {
+        sgx_printf("Comparing main and back\n");
         if (std::memcmp(main_addr, back_addr, g_main_size) != 0)
         {
             void *firstaddr = nullptr;
@@ -536,8 +537,8 @@ public:
         }
         else
         {
-
-            assert(false);
+            sgx_printf("corrupted state\n");
+            //assert(false);
             // ERROR: corrupted state
         }
         PFENCE();
@@ -570,7 +571,7 @@ public:
     template <class Func>
     void ns_write_transaction(Func &&mutativeFunc)
     {
-        sgx_printf("In blocking ns write trans\n");
+        sgx_printf("In ns write trans\n");
         if (tl_nested_write_trans > 0)
         {
             mutativeFunc();
@@ -588,6 +589,7 @@ public:
             // Check if another thread executed my mutation
             if (fc[tid * CLPAD].load(std::memory_order_acquire) == nullptr)
                 return;
+            sgx_printf("Thread pause\n");
             Pause(); 
         }
 
