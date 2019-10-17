@@ -5,7 +5,7 @@
 ## How sgx-romulus works
 - Sgx-romulus has 2 components: one untrusted component: `Romulus_helper.cpp` which initializes the pmem and does the memory mapping of the pmem file (`/dev/shm/romuluslog_shared`) into the application's VAS via the `rom_init` routine; the trusted component of sgx-romulus is the folder `Enclave/romulus` folder. 
 - Once the memory mapping is done in the untrusted runtime, the application calls the `ecall_init` routine to initialize the trusted romulus instance with the memory mapped portion and persistent header information. Once that is done, sgx-romulus is ready to create and manipulate persistent data structures.
-- All data written to pmem could be encrypted within the enclave for confidentiality. 
+- It should be noted that pmem is manipulated inside the enclave but the memory mapped area is not in enclave memory, so for confidentiality all data written to pmem should be encrypted within the enclave; Encryption functionality can easily be added to the code. 
 - Under normal circumstances, an enclave exit is not necessary to correctly manipulate pmem within the enclave except for special ocalls e.g following an abort. 
 - The romulus log is allocated in enclave memory.
 - On application termination the ocall `my_ocall_close` does the `munmap` of the pmem file.
