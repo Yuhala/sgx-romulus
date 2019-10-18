@@ -10,7 +10,7 @@
 - The romulus log is allocated in enclave memory.
 - On application termination the ocall `my_ocall_close` does the `munmap` of the pmem file.
 
-###[![Generic badge](https://img.shields.io/badge/<Status>-<Dev>-<COLOR>.svg)]()
+### [![Generic badge](https://img.shields.io/badge/<Status>-<Dev>-<COLOR>.svg)]()
 - At the moment sgx-romulus is still in development mode but is already largely functional and can be used for an sgx/pmem project. Confidentiality of persistent data using encryption is enough when encryption is done but work still needs to be done to improve the overall integrity of the persistent memory metadata.
 
 
