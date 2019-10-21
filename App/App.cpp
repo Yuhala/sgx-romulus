@@ -1,5 +1,4 @@
 
-
 #include <stdio.h>
 #include <string.h>
 
@@ -44,7 +43,7 @@ void thread_func()
 {
     size_t tid = std::hash<std::thread::id>()(std::this_thread::get_id());
     printf("Thread ID: %d\n", tid);
-    stack_val++;
+    stack_val++;// implement mutex/atomic..just for testing anyway
     ecall_nvram_worker(global_eid, stack_val, tid);
 }
 /* Initialize the enclave:
