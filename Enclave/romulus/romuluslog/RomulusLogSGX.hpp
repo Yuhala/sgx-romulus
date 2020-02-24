@@ -25,6 +25,7 @@
 #include "../common/Types.h"
 #include "../common/RomSGX.h"
 
+extern uint8_t *base_addr_in;
 namespace romuluslog
 {
 
