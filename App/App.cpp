@@ -60,7 +60,7 @@ void run_sps()
 {
     diff = 0;
     long nswaps = 2;
-    long *ops = 0;
+    long *ops = (long *)malloc(sizeof(long));
     clock_gettime(CLOCK_MONOTONIC_RAW, &start);
     while (diff <= 20)
     {
