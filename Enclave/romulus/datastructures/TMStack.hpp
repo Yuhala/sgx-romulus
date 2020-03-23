@@ -37,11 +37,11 @@ public:
         });
     }
 
-    void do_sps(long num_swaps, long *ops)
+    void do_sps(long num_swaps, long *ops, int* signal)
     {
         uint64_t seed = 1234567890123456781ULL;
         long count = 0;
-        while (true)
+        while (true && *signal == 0)
         {
             TM_WRITE_TRANSACTION([&]() {
                 for (int i = 0; i < num_swaps; i++)
