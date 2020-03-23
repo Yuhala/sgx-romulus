@@ -69,7 +69,7 @@ void ocall_stop_clock()
 void run_sps()
 {
     diff = 0;
-    long nswaps = 2;
+    long nswaps = 1024;
     long *ops = (long *)malloc(sizeof(long));
 
     ecall_sps(global_eid, nswaps, ops, &diff);
