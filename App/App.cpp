@@ -74,7 +74,7 @@ void run_sps()
 
     ecall_sps(global_eid, nswaps, ops, &diff);
 
-    printf("Number of ops: %l\n", *ops);
+    printf("Number of ops: %ld\n", *ops);
 }
 void ocall_print_string(const char *str)
 {
