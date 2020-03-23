@@ -13,6 +13,12 @@
 
 /* For benchmarking */
 #include <time.h>
+#include <iostream>
+#include <fstream>
+
+#define RESULTS "/home/ubuntu/peterson/sps/sgxrom/clflush/sgx-rom-clflush.csv"
+//#define RESULTS "/home/ubuntu/peterson/sps/sgxrom/clwb/sgx-rom-clwb.csv"
+//#define RESULTS "/home/ubuntu/peterson/sps/sgxrom/opt/sgx-rom-opt.csv"
 
 struct timespec start, stop;
 double diff;
@@ -68,12 +74,22 @@ void ocall_stop_clock()
 }
 void run_sps()
 {
+    std::ofstream file;
+    file.open(RESULTS);
+    file << "Swaps/TX,Swaps/us\n";
     diff = 0;
     long nswaps = 1024;
     long ops = 0;
+    double tput = 0;
+    double factor = 20 * 1.0e6;
 
-    ecall_sps(global_eid, nswaps, &ops, &diff);
-
+    for (long nswaps = 1; nswaps <= 1024; nswaps *= 2)
+    {
+        ecall_sps(global_eid, nswaps, &ops, &diff);
+        tput = ops / factor;
+        file << nswaps << "," << tput << "\n";
+    }
+    file.close();
     printf("Number of ops: %ld\n", ops);
 }
 void ocall_print_string(const char *str)
