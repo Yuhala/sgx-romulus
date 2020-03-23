@@ -11,6 +11,11 @@
 #include "Romulus_helper.h" //for romulus helper functions
 #include <thread>
 
+/* For benchmarking */
+#include <time.h>
+
+struct timespec start, stop;
+double diff;
 /* For romulus */
 
 #define MAX_PATH FILENAME_MAX
@@ -24,6 +29,48 @@ extern PersistentHeader *per_out;
 extern uint8_t *base_addr;
 extern uint8_t *real_base_addr;
 
+/* Calculates time diff between two timestamps in m */
+
+double time_diff(timespec *start, timespec *stop, granularity gran)
+{
+
+    double diff = 0.0;
+
+    switch (gran)
+    {
+    case MILLI:
+        diff = (double)(stop->tv_sec - start->tv_sec) * 1.0e3 + (double)((stop->tv_nsec - start->tv_nsec) / 1.0e6);
+        break;
+
+    case MICRO:
+        diff = (double)(stop->tv_sec - start->tv_sec) * 1.0e6 + (double)((stop->tv_nsec - start->tv_nsec) / 1.0e3);
+        break;
+
+    case NANO:
+        diff = (double)(stop->tv_sec - start->tv_sec) * 1.0e39 + (double)((stop->tv_nsec - start->tv_nsec));
+        break;
+
+    default: //seconds
+        diff = (double)(stop->tv_sec - start->tv_sec) + (double)((stop->tv_nsec - start->tv_nsec) / 1.0e9);
+        break;
+    }
+}
+
+void run_sps()
+{
+    diff = 0;
+    long nswaps = 2;
+    long *ops = 0;
+    clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+    while (diff <= 20)
+    {
+        clock_gettime(CLOCK_MONOTONIC_RAW, &stop);
+        ecall_sps(global_eid, nswaps, ops);
+        diff = time_diff(&start, &stop, MILLI);
+        diff /= 1000; //convert time to seconds
+    }
+    printf("Number of ops: %l\n", *ops);
+}
 void ocall_print_string(const char *str)
 {
     /* Proxy/Bridge will check the length and null-terminate
@@ -43,7 +90,7 @@ void thread_func()
 {
     size_t tid = std::hash<std::thread::id>()(std::this_thread::get_id());
     printf("Thread ID: %d\n", tid);
-    stack_val++;// implement mutex/atomic..just for testing anyway
+    stack_val++; // implement mutex/atomic..just for testing anyway
     ecall_nvram_worker(global_eid, stack_val, tid);
 }
 /* Initialize the enclave:
@@ -92,18 +139,18 @@ int SGX_CDECL main(int argc, char *argv[])
     ecall_init(global_eid, (void *)per_out, base_addr);
 
     //ecall_nvram_worker(global_eid,stack_val,0);
-    
+
     //Threads will enter enclave and do push/pop on the persistent stack.
-    for (int i = 0; i < NUM_THREADS; i++)
+    /* for (int i = 0; i < NUM_THREADS; i++)
     {
         trd[i] = std::thread(thread_func);
     }
     for (int i = 0; i < NUM_THREADS; i++)
     {
         trd[i].join();
-    }
+    } */
 
-    
+    run_sps();
     //Destroy enclave
     sgx_destroy_enclave(global_eid);
     return 0;

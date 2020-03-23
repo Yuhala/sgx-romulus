@@ -63,8 +63,23 @@ void ecall_init(void *per_out, uint8_t *base_addr_out)
 
     sgx_printf("Enclave init success..init base address for pmem\n");
 
-    // Create an empty stack in PM and save the root pointer (index 0) to use in a later tx
     TM_WRITE_TRANSACTION([&]() {
+        PArray *parray = RomulusLog::get_object<PArray>(0);
+        if (parray == nullptr)
+        {
+            sgx_printf("Creating persistent array...\n");
+            PArray *parray = (PArray *)TM_PMALLOC(sizeof(struct PArray));
+            RomulusLog::put_object(0, parray);
+            parray->allocate();
+        }
+        else
+        {
+            sgx_printf("Persistent array exists...\n");
+        }
+    });
+
+    // Create an empty stack in PM and save the root pointer (index 0) to use in a later tx
+    /*  TM_WRITE_TRANSACTION([&]() {
         PStack *pstack = RomulusLog::get_object<PStack>(0);
         if (pstack == nullptr)
         {
@@ -76,9 +91,14 @@ void ecall_init(void *per_out, uint8_t *base_addr_out)
         {
             sgx_printf("Persistent stack exists...\n");
         }
-    });
+    }); */
 }
-
+/* Run SPS benchmark on persistent array */
+void ecall_sps(long nswaps, long *ops)
+{
+    PArray *parray = RomulusLog::get_object<PArray>(0);
+    parray->do_sps(nswaps,ops);
+}
 /* Worker: core data structure manipulations initialize from here */
 void ecall_nvram_worker(int val, size_t tid)
 {
@@ -94,7 +114,7 @@ void do_work(int val, size_t tid)
         PStack *pstack = RomulusLog::get_object<PStack>(0);
         // sgx_printf("Popped two items: %ld and %ld\n", pstack->pop(), pstack->pop());
         // This one should be "EMTPY" which is 999999999
-        sgx_printf("Worker: %d Popped : %ld\n",tid, pstack->pop());
+        sgx_printf("Worker: %d Popped : %ld\n", tid, pstack->pop());
     });
 
     // Add items to the persistent stack

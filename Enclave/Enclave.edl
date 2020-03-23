@@ -15,6 +15,7 @@ enclave {
         public void ecall_init([user_check]void*per_out,[user_check]uint8_t *addr);
         public void ecall_nvram_worker(int val,size_t tid);
         public void empty_ecall();
+        public void ecall_sps(long nswaps, [user_check]long *ops);
        
         
     };

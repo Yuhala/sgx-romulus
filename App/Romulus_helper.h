@@ -4,7 +4,7 @@
 
 #ifndef ROMULUS_HELPER_
 #define ROMULUS_HELPER_
- 
+
 /* For pmem */
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -19,25 +19,22 @@
 
 #include "Types.h" //persistent header
 
-#define MMAP_FILENAME "/dev/shm/romuluslog_shared"
-#define MAX_SIZE 10*1024*1024 
+#define MMAP_FILENAME "/dev/shm/romuluslog_sps"
+#define MAX_SIZE 400 * 1024 * 1024 
 #define MAGIC_ID 0x1337BAB2
 
 #if defined(__cplusplus)
 
-extern "C" {
+extern "C"
+{
 #endif
 
-void rom_init();
-void create_file();
-void close_file();
-
+    void rom_init();
+    void create_file();
+    void close_file();
 
 #if defined(__cplusplus)
 }
 #endif
-
-
-
 
 #endif /* ROMULUS_HELPER_ */

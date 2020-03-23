@@ -26,6 +26,12 @@
 #define NUM_THREADS 3 //number of worker threads
 
 //extern sgx_enclave_id_t global_eid;    /* global enclave id */
+typedef enum
+{
+    MILLI,
+    MICRO,
+    NANO
+} granularity;
 
 #if defined(__cplusplus)
 
