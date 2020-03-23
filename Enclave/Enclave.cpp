@@ -97,7 +97,7 @@ void ecall_init(void *per_out, uint8_t *base_addr_out)
 /* Run SPS benchmark on persistent array */
 void ecall_sps(long nswaps, long *ops)
 {
-    printf("In ecall sps\n");
+    sgx_printf("In ecall sps\n");
     PArray *parray = RomulusLog::get_object<PArray>(0);
     parray->do_sps(nswaps,ops);
 }
