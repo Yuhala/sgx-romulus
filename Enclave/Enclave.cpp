@@ -67,10 +67,11 @@ void ecall_init(void *per_out, uint8_t *base_addr_out)
         PArray *parray = RomulusLog::get_object<PArray>(0);
         if (parray == nullptr)
         {
-            sgx_printf("Creating persistent array...\n");
+            
             PArray *parray = (PArray *)TM_PMALLOC(sizeof(struct PArray));
             RomulusLog::put_object(0, parray);
             parray->allocate();
+            sgx_printf("Created persistent array...\n");
         }
         else
         {
@@ -96,6 +97,7 @@ void ecall_init(void *per_out, uint8_t *base_addr_out)
 /* Run SPS benchmark on persistent array */
 void ecall_sps(long nswaps, long *ops)
 {
+    printf("In ecall sps\n");
     PArray *parray = RomulusLog::get_object<PArray>(0);
     parray->do_sps(nswaps,ops);
 }

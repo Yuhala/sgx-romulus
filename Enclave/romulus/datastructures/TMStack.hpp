@@ -33,13 +33,14 @@ public:
         TM_WRITE_TRANSACTION([&]() {
             array = (uint64_t *)TM_PMALLOC(ARRAY_SIZE * sizeof(TM_TYPE<uint64_t>));
             for (int i = 0; i < ARRAY_SIZE; i++)
-                    array[i] = i;
+                array[i] = i;
         });
     }
 
     void do_sps(long num_swaps, long *ops)
     {
         uint64_t seed = 1234567890123456781ULL;
+        long count = 0;
         while (true)
         {
             TM_WRITE_TRANSACTION([&]() {
@@ -54,7 +55,9 @@ public:
                     array[ib] = tmp;
                 }
             });
-            (*ops)++; //increase number of transactions by 1
+            count++;
+            *ops = count;
+            //(*ops)++; //increase number of transactions by 1
         }
     }
 };
