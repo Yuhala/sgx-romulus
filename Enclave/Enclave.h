@@ -12,16 +12,17 @@
 #include "romulus/common/RomSGX.h"
 
 #if defined(__cplusplus)
-extern "C" {
+extern "C"
+{
 #endif
-void ecall_nvram_worker(int val,size_t tid);
-void ecall_init(void *per_out,uint8_t *base_addr_out);
-void empty_ecall();
-void ecall_sps(long nswaps, long *ops);
-void do_work(int val,size_t tid);
-void do_close();
+    void ecall_nvram_worker(int val, size_t tid);
+    void ecall_init(void *per_out, uint8_t *base_addr_out);
+    void empty_ecall();
+    void ecall_sps(long nswaps, long *ops, int *signal);
+    void do_work(int val, size_t tid);
+    void do_close();
 
-//int printf(const char* fmt, ...);
+    //int printf(const char* fmt, ...);
 
 #if defined(__cplusplus)
 }
