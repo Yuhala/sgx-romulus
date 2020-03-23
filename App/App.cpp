@@ -60,16 +60,18 @@ void run_sps()
 {
     diff = 0;
     long nswaps = 2;
+    int secs = 5;
     long *ops = (long *)malloc(sizeof(long));
     int signal = 0;
     clock_gettime(CLOCK_MONOTONIC_RAW, &start);
-    while (diff <= 20)
+    while (diff <= secs)
     {
         clock_gettime(CLOCK_MONOTONIC_RAW, &stop);
         diff = time_diff(&start, &stop, MILLI);
         diff /= 1000; //convert time to seconds
-        signal = diff <= 20 ? 1 : 0;
+        signal = (diff >= secs) ? 1 : 0;
         ecall_sps(global_eid, nswaps, ops, &signal);
+        printf("Time elapsed: %f\n", diff);
     }
     printf("Number of ops: %l\n", *ops);
 }
