@@ -55,9 +55,9 @@ public:
                     array[ib] = tmp;
                 }
             });
-            count++;
-            *ops = count;
-            //(*ops)++; //increase number of transactions by 1
+           /*  count++;
+            *ops = count; */
+            (*ops)++; //increase number of transactions by 1
         }
     }
 };
