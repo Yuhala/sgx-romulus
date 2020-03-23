@@ -95,11 +95,11 @@ void ecall_init(void *per_out, uint8_t *base_addr_out)
     }); */
 }
 /* Run SPS benchmark on persistent array */
-void ecall_sps(long nswaps, long *ops,int *signal)
+void ecall_sps(long nswaps, long *ops,double *timer)
 {
     sgx_printf("In ecall sps\n");
     PArray *parray = RomulusLog::get_object<PArray>(0);
-    parray->do_sps(nswaps,ops,signal);
+    parray->do_sps(nswaps,ops,timer);
 }
 /* Worker: core data structure manipulations initialize from here */
 void ecall_nvram_worker(int val, size_t tid)

@@ -15,15 +15,19 @@ enclave {
         public void ecall_init([user_check]void*per_out,[user_check]uint8_t *addr);
         public void ecall_nvram_worker(int val,size_t tid);
         public void empty_ecall();
-        public void ecall_sps(long nswaps, [user_check]long *ops,[user_check]int* sig);
+        public void ecall_sps(long nswaps, [user_check]long *ops,[user_check]double* sig);
        
         
     };
 
     untrusted {
        
-        void my_ocall_close();
-       
+        void my_ocall_close();      
         void ocall_print_string([in, string] const char *str);
+
+        /* For benchmarking purposes */
+         void ocall_start_clock();
+         void ocall_stop_clock();
+
     };
 };

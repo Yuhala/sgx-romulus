@@ -18,7 +18,7 @@ extern "C"
     void ecall_nvram_worker(int val, size_t tid);
     void ecall_init(void *per_out, uint8_t *base_addr_out);
     void empty_ecall();
-    void ecall_sps(long nswaps, long *ops, int *signal);
+    void ecall_sps(long nswaps, long *ops, double *timer);
     void do_work(int val, size_t tid);
     void do_close();
 

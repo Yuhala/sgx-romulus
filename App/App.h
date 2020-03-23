@@ -41,6 +41,9 @@ extern "C"
 
     void ocall_print_string(const char *str);
     void my_ocall_close();
+    /* For benchmarking purposes */
+    void ocall_start_clock();
+    void ocall_stop_clock();
 
 #if defined(__cplusplus)
 }

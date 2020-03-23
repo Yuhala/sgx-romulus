@@ -56,23 +56,24 @@ double time_diff(timespec *start, timespec *stop, granularity gran)
     }
 }
 
+void ocall_start_clock()
+{
+    clock_gettime(CLOCK_MONOTONIC_RAW, &start);
+}
+void ocall_stop_clock()
+{
+    clock_gettime(CLOCK_MONOTONIC_RAW, &stop);
+    diff = time_diff(&start, &stop, MILLI);
+    diff /= 1000; //convert time to seconds
+}
 void run_sps()
 {
     diff = 0;
     long nswaps = 2;
-    int secs = 5;
     long *ops = (long *)malloc(sizeof(long));
-    int signal = 0;
-    clock_gettime(CLOCK_MONOTONIC_RAW, &start);
-    while (diff <= secs)
-    {
-        clock_gettime(CLOCK_MONOTONIC_RAW, &stop);
-        diff = time_diff(&start, &stop, MILLI);
-        diff /= 1000; //convert time to seconds
-        signal = (diff >= secs) ? 1 : 0;
-        ecall_sps(global_eid, nswaps, ops, &signal);
-        printf("Time elapsed: %f\n", diff);
-    }
+
+    ecall_sps(global_eid, nswaps, ops, &diff);
+
     printf("Number of ops: %l\n", *ops);
 }
 void ocall_print_string(const char *str)
