@@ -2,7 +2,7 @@
 #define _TM_STACK
 
 #define ROMULUS_LOG_PTM
-#define ARRAY_SIZE 10 << 20
+#define ARRAY_SIZE 10 * 1024 * 1024
 #define RUNTIME 20
 //All  your pmem objects could use this as a template
 //Include this template file inside enclave routine to use the pmem object
@@ -38,7 +38,7 @@ public:
         });
     }
 
-    void do_sps(long num_swaps, long *ops, double* timer)
+    void do_sps(long num_swaps, long *ops, double *timer)
     {
         uint64_t seed = 1234567890123456781ULL;
         long count = 0;
@@ -57,7 +57,7 @@ public:
                     array[ib] = tmp;
                 }
             });
-           /*  count++;
+            /*  count++;
             *ops = count; */
             (*ops)++; //increase number of transactions by 1
             ocall_stop_clock();
