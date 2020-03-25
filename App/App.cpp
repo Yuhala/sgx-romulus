@@ -40,26 +40,27 @@ extern uint8_t *real_base_addr;
 double time_diff(timespec *start, timespec *stop, granularity gran)
 {
 
-    double diff = 0.0;
+    double lapse = 0.0;
 
     switch (gran)
     {
     case MILLI:
-        diff = (double)(stop->tv_sec - start->tv_sec) * 1.0e3 + (double)((stop->tv_nsec - start->tv_nsec) / 1.0e6);
+        lapse = (double)(stop->tv_sec - start->tv_sec) * 1.0e3 + (double)((stop->tv_nsec - start->tv_nsec) / 1.0e6);
         break;
 
     case MICRO:
-        diff = (double)(stop->tv_sec - start->tv_sec) * 1.0e6 + (double)((stop->tv_nsec - start->tv_nsec) / 1.0e3);
+        lapse = (double)(stop->tv_sec - start->tv_sec) * 1.0e6 + (double)((stop->tv_nsec - start->tv_nsec) / 1.0e3);
         break;
 
     case NANO:
-        diff = (double)(stop->tv_sec - start->tv_sec) * 1.0e39 + (double)((stop->tv_nsec - start->tv_nsec));
+        lapse = (double)(stop->tv_sec - start->tv_sec) * 1.0e39 + (double)((stop->tv_nsec - start->tv_nsec));
         break;
 
     default: //seconds
-        diff = (double)(stop->tv_sec - start->tv_sec) + (double)((stop->tv_nsec - start->tv_nsec) / 1.0e9);
+        lapse = (double)(stop->tv_sec - start->tv_sec) + (double)((stop->tv_nsec - start->tv_nsec) / 1.0e9);
         break;
     }
+    return lapse;
 }
 
 void ocall_start_clock()
