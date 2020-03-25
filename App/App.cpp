@@ -87,7 +87,7 @@ void run_sps()
 
     for (long nswaps = 2; nswaps <= 1024; nswaps *= 2)
     {
-        printf("Nswaps: %d\n",nswaps);
+        printf("Nswaps: %d\n", nswaps);
         ecall_sps(global_eid, nswaps, &ops, &diff);
         tput = ops / factor;
         file << nswaps << "," << tput << "\n";
@@ -97,7 +97,6 @@ void run_sps()
         diff = 0;
     }
     file.close();
-    
 }
 void ocall_print_string(const char *str)
 {
@@ -142,7 +141,7 @@ int initialize_enclave(void)
 
 /* Application entry */
 int SGX_CDECL main(int argc, char *argv[])
-{
+{   
     (void)argc;
     (void)argv;
 
