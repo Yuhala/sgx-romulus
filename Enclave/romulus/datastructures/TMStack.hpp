@@ -57,6 +57,7 @@ public:
                     array[ib] = tmp;
                 }
             });
+            sgx_printf("completed trans\n");
             /*  count++;
             *ops = count; */
             (*ops)++; //increase number of transactions by 1
