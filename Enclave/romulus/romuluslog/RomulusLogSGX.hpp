@@ -571,7 +571,7 @@ public:
     template <class Func>
     void ns_write_transaction(Func &&mutativeFunc)
     {
-        sgx_printf("In ns write trans\n");
+        //sgx_printf("In ns write trans\n");
         if (tl_nested_write_trans > 0)
         {
             mutativeFunc();

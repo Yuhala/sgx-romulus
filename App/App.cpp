@@ -16,9 +16,9 @@
 #include <iostream>
 #include <fstream>
 
-#define RESULTS "/home/ubuntu/peterson/sps/sgxrom/clflush/sgx-rom-clflush.csv"
-//#define RESULTS "/home/ubuntu/peterson/sps/sgxrom/clwb/sgx-rom-clwb.csv"
-//#define RESULTS "/home/ubuntu/peterson/sps/sgxrom/opt/sgx-rom-opt.csv"
+#define RESULTS "/home/ubuntu/peterson/sps/sgx-romulus/clflush/sgx-rom-clflush.csv"
+//#define RESULTS "/home/ubuntu/peterson/sps/sgx-romulus/clwb/sgx-rom-clwb.csv"
+//#define RESULTS "/home/ubuntu/peterson/sps/sgx-romulus/opt/sgx-rom-opt.csv"
 
 struct timespec start, stop;
 double diff;

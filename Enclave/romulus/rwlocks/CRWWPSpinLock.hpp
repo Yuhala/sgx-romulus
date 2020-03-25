@@ -76,18 +76,18 @@ private:
         bool isLocked() { return (writers.load()==1); }
         void lock() {
             while (!tryLock()) {
-                 sgx_printf("thread locking pmo\n");
+                 //sgx_printf("thread locking pmo\n");
                  Pause();
             }
         }
         bool tryLock() {
-            sgx_printf("thread trying lock\n");
+            //sgx_printf("thread trying lock\n");
             if(writers.load()==1)return false;
             int tmp = 0;
             return writers.compare_exchange_strong(tmp,1);
         }
         void unlock() {
-            sgx_printf("thread unlocked pmo\n");
+            //sgx_printf("thread unlocked pmo\n");
             writers.store(0, std::memory_order_release);
         }
     };
