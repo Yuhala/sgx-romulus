@@ -71,7 +71,7 @@ void ocall_stop_clock()
     clock_gettime(CLOCK_MONOTONIC_RAW, &stop);
     diff = time_diff(&start, &stop, MILLI);
     diff /= 1000; //convert time to seconds
-    printf("Difference is: %fs\n",diff);
+    //printf("Difference is: %fs\n",diff);
 }
 void run_sps()
 {
@@ -84,12 +84,13 @@ void run_sps()
     double tput = 0;
     double factor = 20 * 1.0e6;
 
-    for (long nswaps = 1; nswaps <= 1024; nswaps *= 2)
+    for (long nswaps = 2; nswaps <= 1024; nswaps *= 2)
     {
         printf("Nswaps: %d\n",nswaps);
         ecall_sps(global_eid, nswaps, &ops, &diff);
         tput = ops / factor;
         file << nswaps << "," << tput << "\n";
+        file.flush();
         //reset timer and ops for next iter
         ops = 0;
         diff = 0;
