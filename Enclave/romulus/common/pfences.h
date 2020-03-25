@@ -10,8 +10,8 @@
 #include <string.h>
 #include <unistd.h>
 
-#define PWB_IS_CLFLUSHOPT
-//#define PWB_IS_CLFLUSH
+//#define PWB_IS_CLFLUSHOPT
+#define PWB_IS_CLFLUSH
 //#define PWB_IS_CLWB
 
 
