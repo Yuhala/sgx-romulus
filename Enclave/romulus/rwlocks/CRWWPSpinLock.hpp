@@ -142,7 +142,7 @@ public:
     }
 
     bool tryExclusiveLock() {
-        sgx_printf("trying exc lock\n");
+        //sgx_printf("trying exc lock\n");
         return splock.tryLock();
     }
 

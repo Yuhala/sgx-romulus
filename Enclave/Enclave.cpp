@@ -68,7 +68,7 @@ void ecall_init(void *per_out, uint8_t *base_addr_out)
         if (parray == nullptr)
         {
             
-            PArray *parray = (PArray *)TM_PMALLOC(sizeof(struct PArray));
+            parray = (PArray *)TM_PMALLOC(sizeof(struct PArray));
             RomulusLog::put_object(0, parray);
             parray->allocate();
             sgx_printf("Created persistent array...\n");

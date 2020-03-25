@@ -89,6 +89,7 @@ void run_sps()
         ecall_sps(global_eid, nswaps, &ops, &diff);
         tput = ops / factor;
         file << nswaps << "," << tput << "\n";
+        ops = 0;
     }
     file.close();
     printf("Number of ops: %ld\n", ops);
