@@ -12,7 +12,7 @@
 
 //#define PWB_IS_CLFLUSHOPT
 //#define PWB_IS_CLFLUSH
-#define PWB_IS_CLW
+#define PWB_IS_CLWB
 
 
 #define CL_SIZE 64 // Size of one CPU cache line
