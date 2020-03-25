@@ -127,7 +127,7 @@ Crypto_Library_Name := sgx_tcrypto
 #---------------------------------------------------------
 Rom_Folder :=  Enclave/romulus
 Rom_Include_Paths := -I$(Rom_Folder)
-Romulus_Cpp_Flags := -DPWB_IS_CLFLUSH $(Rom_Include_Paths) 
+Romulus_Cpp_Flags := $(Rom_Include_Paths) 
 Rom_Cpp_Files:= $(Rom_Folder)/romuluslog/RomulusLogSGX.cpp $(Rom_Folder)/romuluslog/malloc.cpp $(Rom_Folder)/common/ThreadRegistry.cpp
 #Rom_Cpp_Objects := $(Rom_Cpp_Files:.cpp=.o)
 Rom_Cpp_Objects := RomulusLogSGX.o malloc.o ThreadRegistry.o

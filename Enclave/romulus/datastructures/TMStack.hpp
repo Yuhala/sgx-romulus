@@ -2,7 +2,7 @@
 #define _TM_STACK
 
 #define ROMULUS_LOG_PTM
-#define ARRAY_SIZE 10 * 1024 * 1024
+#define ARRAY_SIZE 10 
 #define RUNTIME 20
 //All  your pmem objects could use this as a template
 //Include this template file inside enclave routine to use the pmem object
