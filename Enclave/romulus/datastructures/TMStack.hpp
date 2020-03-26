@@ -37,7 +37,6 @@ public:
             for (int i = 0; i < ARRAY_SIZE; i++)
                 array[i] = i;
         });
-        
     }
 
     void do_sps(long num_swaps, long *ops, double *timer)
@@ -62,7 +61,7 @@ public:
             //sgx_printf("completed trans\n");
             /*  count++;
             *ops = count; */
-            (*ops)++; //increase number of transactions by 1
+            (*ops) += num_swaps; //increase number of transactions by 1
             ocall_stop_clock();
         }
     }
