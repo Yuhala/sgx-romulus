@@ -85,7 +85,7 @@ void run_sps()
     double tput = 0;
     double factor = 20 * 1.0e6;
 
-    for (long nswaps = 2; nswaps <= 1024; nswaps *= 2)
+    for (long nswaps = 2; nswaps <= 2048; nswaps *= 2)
     {
         printf("Nswaps: %d\n", nswaps);
         ecall_sps(global_eid, nswaps, &ops, &diff);
