@@ -18,7 +18,7 @@
 #define MAGIC_ID_H 0x1337BAB2
 #define CLPAD_H (128 / sizeof(uintptr_t)) //
 #define NUM_ROOTS 100
-#define MAX_THREADS 10 //single threading for now
+#define MAX_THREADS 16 //single threading for now
 //---------------------------------------------------------------
 
 /**
