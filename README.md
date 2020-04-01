@@ -32,6 +32,10 @@ push and pop data to/from the stack. Each thread-id is printed for the push/pop.
 
 - Execute the binary directly:
     ```$ ./app```
+- The code can be debugged with `sgx-gdb` debug tool.
 
+## How to integrate sgx-romulus in your Intel SGX project
+- The simplest way to do this is to use this project as the initial template of your SGX application.
+- Then write your SGX program accordingly following the exact same SGX SDK rules.
 
-- The code can be debugged with `sgx-gdb` debug tool. 
+ 
