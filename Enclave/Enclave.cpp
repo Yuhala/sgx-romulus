@@ -38,7 +38,7 @@ void abort_h()
 
 void do_close()
 {
-    my_ocall_close();
+    my_ocall_unmap();
 }
 
 void empty_ecall()

@@ -33,7 +33,7 @@ void ocall_print_string(const char *str)
 }
 
 /* Do munmap and close file */
-void my_ocall_close()
+void my_ocall_unmap()
 {
     close_file();
 }

@@ -34,7 +34,7 @@ extern "C"
 #endif
 
     void ocall_print_string(const char *str);
-    void my_ocall_close();
+    void my_ocall_unmap();
 
 #if defined(__cplusplus)
 }

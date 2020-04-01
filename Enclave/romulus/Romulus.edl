@@ -1,0 +1,25 @@
+
+/*
+ * Author: Peterson Yuhala
+ * SGX-Romulus EDL file
+ */
+
+
+
+enclave { 
+    
+    
+
+    trusted {
+
+        public void ecall_init([user_check]void*per_out,[user_check]uint8_t *addr);     
+       
+        
+    };
+
+    untrusted {
+       
+        void my_ocall_unmap();       
+        
+    };
+};
