@@ -15,13 +15,19 @@
 #include <time.h>
 #include <iostream>
 #include <fstream>
+/* For getrusage */
+#include <sys/time.h>
+#include <sys/resource.h>
 
 //#define RESULTS "/home/ubuntu/peterson/sps/sgx-rom/clflush/sgx-rom-clflush.csv"
 //#define RESULTS "/home/ubuntu/peterson/sps/sgx-rom/clwb/sgx-rom-clwb.csv"
-#define RESULTS "/home/ubuntu/peterson/sps/native/opt/native-opt.csv"
+//#define RESULTS "/home/ubuntu/peterson/sps/native/opt/native-opt.csv"
+#define RESULTS "/home/ubuntu/peterson/sgx-romulus/results/sps.csv"
 
 struct timespec start, stop;
 double diff;
+struct rusage usage;
+int who = RUSAGE_SELF;
 /* For romulus */
 
 #define MAX_PATH FILENAME_MAX
@@ -78,19 +84,31 @@ void run_sps()
 {
     std::ofstream file;
     file.open(RESULTS);
-    file << "Swaps/TX,Swaps/us\n";
+    file << "Swaps/TX,Swaps/us,Num_page_faults\n";
     diff = 0;
     //long nswaps = 1024;
     long ops = 0;
     double tput = 0;
     double factor = 20 * 1.0e6;
-
+    int num_faults = 0;
+    long int pf1;
+    long int pf2;
+    long int diff_flts;
+    int ret;
     for (long nswaps = 2; nswaps <= 2048; nswaps *= 2)
     {
         printf("Nswaps: %d\n", nswaps);
+
+        ret = getrusage(who, &usage);
+        pf1 = usage.ru_minflt;
         ecall_sps(global_eid, nswaps, &ops, &diff);
+        ret = getrusage(who, &usage);
+        pf2 = usage.ru_minflt;
+        diff_flts = pf2 - pf1;
+
         tput = ops / factor;
-        file << nswaps << "," << tput << "\n";
+        std::cout << nswaps << "," << tput << "," << diff_flts << "\n";
+        file << nswaps << "," << tput << "," << diff_flts << "\n";
         file.flush();
         //reset timer and ops for next iter
         ops = 0;
@@ -141,7 +159,7 @@ int initialize_enclave(void)
 
 /* Application entry */
 int SGX_CDECL main(int argc, char *argv[])
-{   
+{
     (void)argc;
     (void)argv;
 
