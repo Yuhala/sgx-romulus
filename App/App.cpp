@@ -99,16 +99,16 @@ void run_sps()
     {
         printf("Nswaps: %d\n", nswaps);
 
-        ret = getrusage(who, &usage);
-        pf1 = usage.ru_minflt;
+        //ret = getrusage(who, &usage);
+        //pf1 = usage.ru_minflt;
         ecall_sps(global_eid, nswaps, &ops, &diff);
         ret = getrusage(who, &usage);
         pf2 = usage.ru_minflt;
-        diff_flts = pf2 - pf1;
+        //diff_flts = pf2 - pf1;
 
         tput = ops / factor;
-        std::cout << nswaps << "," << tput << "," << diff_flts << "\n";
-        file << nswaps << "," << tput << "," << diff_flts << "\n";
+        std::cout << nswaps << "," << tput << "," << pf2 << "\n";
+        file << nswaps << "," << tput << "," << pf2 << "\n";
         file.flush();
         //reset timer and ops for next iter
         ops = 0;
