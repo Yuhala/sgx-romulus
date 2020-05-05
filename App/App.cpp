@@ -108,7 +108,7 @@ void run_sps()
 
         tput = ops / factor;
         std::cout << nswaps << "," << tput << "," << diff_flts << "\n";
-        file << nswaps << "," << tput << "," << pf2 << "\n";
+        file << nswaps << "," << tput << "," <<diff_flts << "\n";
         file.flush();
         //reset timer and ops for next iter
         ops = 0;
